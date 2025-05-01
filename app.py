@@ -2,114 +2,113 @@ import os
 import json
 import time
 from io import BytesIO
-from flask import Flask, render_template, request, send_file, flash
+from flask import Flask, request, send_file, jsonify
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
-from reportlab.platypus import Paragraph, Spacer
-from reportlab.lib.enums import TA_CENTER
+from reportlab.platypus import Table, TableStyle
+from flask import Flask, request, send_file, jsonify, render_template 
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24).hex()  # For flash messages
+app.config.update(
+    MAX_CONTENT_LENGTH=2 * 1024 * 1024,  # 2MB limit
+    SECRET_KEY=os.environ.get('SECRET_KEY', os.urandom(24).hex()),
+    JSON_AS_ASCII=False
+)
 
-def extract_usernames(json_data, key):
-    """Extract usernames from Instagram JSON structure"""
-    return [item['string_list_data'][0]['value'] 
-            for item in json_data.get(key, [])
-            if item.get('string_list_data')]
+class InstagramAnalyzer:
+    @staticmethod
+    def validate_files(files):
+        if 'following' not in files or 'followers' not in files:
+            raise ValueError("Both files are required")
+            
+        following = files['following']
+        followers = files['followers']
+        
+        if not (following and followers):
+            raise ValueError("Empty file upload detected")
+            
+        if not (following.filename.endswith('.json') and 
+                followers.filename.endswith('.json')):
+            raise ValueError("Only JSON files are allowed")
 
-@app.route('/', methods=['GET'])
+    @staticmethod
+    def process_file(file):
+        try:
+            data = json.load(file)
+            return data
+        except json.JSONDecodeError:
+            raise ValueError("Invalid JSON format in uploaded file")
+        except Exception as e:
+            raise ValueError(f"File processing error: {str(e)}")
+
+    @staticmethod
+    def extract_users(data, key):
+        users = []
+        for item in data.get(key, []):
+            try:
+                if isinstance(item, dict) and item.get('string_list_data'):
+                    users.append(item['string_list_data'][0]['value'])
+            except (KeyError, IndexError, TypeError):
+                continue
+        return sorted(list(set(users)))
+
+@app.route('/')
 def home():
-    """Render main page"""
     return render_template('index.html')
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
-        # Validate files
-        if 'following' not in request.files or 'followers' not in request.files:
-            flash('Please upload both files')
-            return render_template('index.html'), 400
-            
-        following_file = request.files['following']
-        followers_file = request.files['followers']
+        # Validate request
+        analyzer = InstagramAnalyzer()
+        analyzer.validate_files(request.files)
         
-        # Process JSON data
-        following_data = json.load(following_file)
-        followers_data = json.load(followers_file)
+        # Process files
+        following_data = analyzer.process_file(request.files['following'])
+        followers_data = analyzer.process_file(request.files['followers'])
         
-        # Extract usernames
-        following = extract_usernames(following_data, "relationships_following")
-        followers = extract_usernames(followers_data, "relationships_followers")
+        # Extract users
+        following = analyzer.extract_users(following_data, "relationships_following")
+        followers = analyzer.extract_users(followers_data, "relationships_followers")
         
-        # Find non-followers
-        non_followers = sorted([user for user in following if user not in followers])
+        # Compare lists
+        non_followers = list(set(following) - set(followers))
         
         # Generate PDF
-        buffer = generate_pdf_report(non_followers)
+        pdf_buffer = BytesIO()
+        pdf = canvas.Canvas(pdf_buffer, pagesize=letter)
         
-        # Return PDF
+        # PDF Content
+        pdf.setTitle("Instagram Unfollower Report")
+        pdf.setFont("Helvetica-Bold", 18)
+        pdf.drawString(72, 750, "Instagram Unfollower Report")
+        
+        # Create table
+        data = [[i+1, user] for i, user in enumerate(non_followers)]
+        table = Table(data, colWidths=[50, 450])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#F8F9FA")),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.HexColor("#E1306C")),
+            ('GRID', (0,0), (-1,-1), 1, colors.lightgrey),
+        ]))
+        table.wrapOn(pdf, 0, 0)
+        table.drawOn(pdf, 72, 700)
+        
+        pdf.save()
+        pdf_buffer.seek(0)
+        
         return send_file(
-            buffer,
+            pdf_buffer,
             as_attachment=True,
             download_name=f"unfollowers_report_{int(time.time())}.pdf",
-            mimetype="application/pdf"
+            mimetype='application/pdf'
         )
-        
-    except json.JSONDecodeError:
-        flash('Invalid JSON files - please upload original Instagram data')
-        return render_template('index.html'), 400
-    except KeyError as e:
-        flash(f'Invalid file structure: {str(e)}')
-        return render_template('index.html'), 400
-    except Exception as e:
-        app.logger.error(f'Error processing request: {str(e)}')
-        flash('An unexpected error occurred. Please try again.')
-        return render_template('index.html'), 500
 
-def generate_pdf_report(users):
-    """Generate professional PDF report"""
-    buffer = BytesIO()
-    pdf = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
-    styles = getSampleStyleSheet()
-    
-    # Custom Styles
-    styles.add(ParagraphStyle(
-        name='Header',
-        fontSize=24,
-        leading=30,
-        alignment=TA_CENTER,
-        textColor=colors.HexColor('#E1306C')
-    ))
-    
-    # Header Section
-    pdf.setAuthor("Instagram Unfollower Checker")
-    header = Paragraph("Instagram Unfollower Report", styles['Header'])
-    header.wrapOn(pdf, width-100, height)
-    header.drawOn(pdf, 50, height-100)
-    
-    # Metadata
-    pdf.setFont("Helvetica", 10)
-    pdf.drawString(50, height-140, f"Report generated: {time.strftime('%d %b %Y %H:%M')}")
-    pdf.drawString(50, height-160, f"Total unfollowers found: {len(users)}")
-    
-    # Content
-    y_position = height-200
-    for idx, user in enumerate(users, 1):
-        text = f"{idx}. {user}"
-        pdf.setFont("Helvetica", 12)
-        pdf.drawString(72, y_position, text)
-        y_position -= 20
-        
-        if y_position < 100:
-            pdf.showPage()
-            y_position = height-100
-            
-    pdf.save()
-    buffer.seek(0)
-    return buffer
+    except Exception as e:
+        app.logger.error(f"Error: {str(e)}")
+        return jsonify(error=str(e)), 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
