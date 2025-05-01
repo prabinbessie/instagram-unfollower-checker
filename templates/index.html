@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Unfollower Detective</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --ig-primary: #E1306C;
+            --ig-secondary: #833AB4;
+            --ig-accent: #FCB045;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(45deg, var(--ig-secondary), var(--ig-primary), var(--ig-accent));
+        }
+        
+        .file-upload-box {
+            border: 3px dashed #dee2e6;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .file-upload-box.dragover {
+            border-color: var(--ig-primary);
+            background: rgba(225, 48, 108, 0.05);
+        }
+        
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Loading Spinner -->
+    <div class="loading-overlay d-flex justify-content-center align-items-center">
+        <div class="text-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h4 class="mt-3">Generating Your Report...</h4>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="gradient-bg text-white py-5">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold mb-3">
+                <i class="fab fa-instagram"></i> Unfollower Detective
+            </h1>
+            <p class="lead">Discover who stopped following you on Instagram</p>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg">
+                    <div class="card-body p-4">
+                        {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                <div class="alert alert-danger">
+                                    {{ messages[0] }}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+
+                        <form id="uploadForm" method="post" enctype="multipart/form-data">
+                            <div class="file-upload-box rounded-4 p-4 mb-4 text-center"
+                                ondrop="dropHandler(event)" 
+                                ondragover="dragOverHandler(event)"
+                                ondragleave="dragLeaveHandler(event)">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h4>Drag & Drop Files</h4>
+                                <p class="text-muted mb-3">or click to browse</p>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-user-plus me-2"></i>following.json
+                                        </label>
+                                        <input type="file" class="form-control" name="following" required accept=".json">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-users me-2"></i>followers.json
+                                        </label>
+                                        <input type="file" class="form-control" name="followers" required accept=".json">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100 py-3">
+                                <i class="fas fa-magnifying-glass me-2"></i> Generate Report
+                            </button>
+                        </form>
+
+                        <div class="mt-5">
+                            <div class="accordion" id="instructions">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                            How to Get Your Instagram Data?
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOne" class="accordion-collapse collapse show">
+                                        <div class="accordion-body">
+                                            <ol class="list-unstyled">
+                                                <li class="mb-3">
+                                                    <strong>1. Request Data:</strong><br>
+                                                    Instagram App → Settings → Privacy and Security → Download Data
+                                                </li>
+                                                <li class="mb-3">
+                                                    <strong>2. Get Files:</strong><br>
+                                                    Wait for email → Download ZIP → Extract files
+                                                </li>
+                                                <li>
+                                                    <strong>3. Required Files:</strong><br>
+                                                    Upload <code>followers.json</code> and <code>following.json</code>
+                                                </li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Drag & Drop Handling
+        function dragOverHandler(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function dragLeaveHandler(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function dropHandler(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            document.querySelector('input[name="following"]').files = files[0];
+            document.querySelector('input[name="followers"]').files = files[1];
+        }
+
+        // Loading Animation
+        document.getElementById('uploadForm').addEventListener('submit', () => {
+            document.querySelector('.loading-overlay').style.display = 'flex';
+        });
+    </script>
+</body>
+</html>
