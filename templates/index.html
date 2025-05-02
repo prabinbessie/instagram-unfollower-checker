@@ -18,33 +18,6 @@
       clip-path: ellipse(130% 100% at 50% 0%);
       text-align: center;
     }
-    .file-upload-box {
-      border: 2px dashed #ccc;
-      transition: border-color 0.3s, background-color 0.3s;
-      cursor: pointer;
-      position: relative;
-    }
-    .file-upload-box.drag-active {
-      border-color: #e1306c;
-      background-color: rgba(225,48,108,0.05);
-    }
-    .file-upload-box input[type="file"] {
-      position: absolute;
-      top:0; left:0; width:100%; height:100%;
-      opacity: 0; cursor: pointer;
-    }
-    .file-list {
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: #555;
-    }
-    .instructions {
-      background: #fff;
-      border-radius: 0.5rem;
-      padding: 1.5rem;
-      margin-top: 2rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
     .developer-footer {
       text-align: center;
       padding: 1.5rem;
@@ -52,6 +25,11 @@
       border-radius: 0.5rem;
       margin-top: 3rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .version-label {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 0.5rem;
     }
     .loading-overlay {
       position: fixed; top:0; left:0; width:100%; height:100%;
@@ -83,27 +61,48 @@
         <div class="card shadow-sm">
           <div class="card-body p-4">
             <form id="uploadForm" method="post" enctype="multipart/form-data">
-              <div id="dropZone" 
-                   class="file-upload-box rounded-4 p-5 text-center mb-4"
-                   ondragover="dragOverHandler(event)" 
-                   ondragleave="dragLeaveHandler(event)"
-                   ondrop="dropHandler(event)">
-                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                <h5>Drag &amp; Drop JSON files here</h5>
-                <p class="text-muted">or click to browse</p>
-                <input type="file" name="following" accept=".json" required>
-                <input type="file" name="followers" accept=".json" required>
-                <div class="file-list" id="fileList">
-                  <em>No files selected</em>
-                </div>
+              <!-- Following JSON -->
+              <div class="mb-4">
+                <label for="following" class="form-label">
+                  <i class="fas fa-user-plus me-2"></i>
+                  Upload <code>following.json</code>
+                </label>
+                <input
+                  type="file"
+                  class="form-control"
+                  id="following"
+                  name="following"
+                  accept=".json"
+                  required
+                >
               </div>
-              
+
+              <!-- Followers JSON -->
+              <div class="mb-4">
+                <label for="followers" class="form-label">
+                  <i class="fas fa-user-check me-2"></i>
+                  Upload <code>followers.json</code>
+                </label>
+                <input
+                  type="file"
+                  class="form-control"
+                  id="followers"
+                  name="followers"
+                  accept=".json"
+                  required
+                >
+              </div>
+
               <button type="submit" class="btn btn-primary btn-lg w-100">
-                <i class="fas fa-magnifying-glass me-2"></i>Generate Report
+                <i class="fas fa-magnifying-glass me-2"></i>
+                Generate Report
               </button>
             </form>
 
-            <div class="instructions">
+            <!-- Where we’ll inject the non-followers list -->
+            <div id="results" class="mt-4"></div>
+
+            <div class="instructions mt-4">
               <h5><i class="fas fa-info-circle me-2"></i>How to Get Your Instagram Data</h5>
               <ol class="mt-2 mb-0">
                 <li>Open Instagram app and go to <strong>Settings &gt; Privacy and Security</strong>.</li>
@@ -118,6 +117,7 @@
               <a href="https://prabinb.com.np/?i=1" target="_blank" class="text-decoration-none">
                 Visit My Portfolio <i class="fas fa-external-link-alt"></i>
               </a>
+              <p class="version-label">Version V:2:0:0</p>
             </div>
           </div>
         </div>
@@ -126,99 +126,74 @@
   </div>
 
   <script>
-    const dropZone = document.getElementById('dropZone');
-    const fileInputs = {
-      following: document.querySelector('input[name="following"]'),
-      followers: document.querySelector('input[name="followers"]')
-    };
-    const fileListEl = document.getElementById('fileList');
     const overlay = document.getElementById('loadingOverlay');
     const form = document.getElementById('uploadForm');
 
-    // Highlight drop zone
-    function dragOverHandler(e) {
-      e.preventDefault();
-      dropZone.classList.add('drag-active');
-    }
-    function dragLeaveHandler(e) {
-      e.preventDefault();
-      dropZone.classList.remove('drag-active');
-    }
-
-    // Assign dropped files
-    function dropHandler(e) {
-      e.preventDefault();
-      dropZone.classList.remove('drag-active');
-
-      const files = Array.from(e.dataTransfer.files);
-      const dtFollow = new DataTransfer();
-      const dtFollowers = new DataTransfer();
-      let names = [];
-
-      files.forEach(f => {
-        if (f.name.toLowerCase() === 'following.json') {
-          dtFollow.items.add(f);
-          names.push(f.name);
-        } else if (f.name.toLowerCase() === 'followers.json') {
-          dtFollowers.items.add(f);
-          names.push(f.name);
-        }
-      });
-
-      fileInputs.following.files = dtFollow.files;
-      fileInputs.followers.files = dtFollowers.files;
-      updateFileList();
-    }
-
-    // Show selected file names
-    function updateFileList() {
-      const f1 = fileInputs.following.files[0];
-      const f2 = fileInputs.followers.files[0];
-      if (f1 || f2) {
-        let html = '<ul class="list-unstyled mb-0">';
-        if (f1) html += `<li><i class="fas fa-file-code me-2"></i>${f1.name}</li>`;
-        if (f2) html += `<li><i class="fas fa-file-code me-2"></i>${f2.name}</li>`;
-        html += '</ul>';
-        fileListEl.innerHTML = html;
-      } else {
-        fileListEl.innerHTML = '<em>No files selected</em>';
-      }
-    }
-
-    // Wire up click-to-browse
-    dropZone.addEventListener('click', () => {
-      // just click the first hidden file input to open file dialog
-      fileInputs.following.click();
-    });
-    Object.values(fileInputs).forEach(input => {
-      input.addEventListener('change', updateFileList);
-    });
-
-    // Form submission
     form.addEventListener('submit', async e => {
       e.preventDefault();
-      if (!fileInputs.following.files.length || !fileInputs.followers.files.length) {
+      const fInput = document.getElementById('following');
+      const uInput = document.getElementById('followers');
+      if (!fInput.files.length || !uInput.files.length) {
         alert('Please select both JSON files before proceeding.');
         return;
       }
+
       overlay.classList.add('active');
+      const formData = new FormData(form);
+
       try {
-        const formData = new FormData(form);
-        const resp = await fetch('/analyze', { method: 'POST', body: formData });
-        if (!resp.ok) throw new Error(await resp.text());
-        const blob = await resp.blob();
+        // 1) Fetch JSON list
+        const resp1 = await fetch('/analyze/json', {
+          method: 'POST',
+          body: formData
+        });
+        if (!resp1.ok) {
+          const err = await resp1.json();
+          throw new Error(err.error || resp1.statusText);
+        }
+        const { non_followers } = await resp1.json();
+
+        // 2) Render on page
+        const resDiv = document.getElementById('results');
+        if (non_followers.length === 0) {
+          resDiv.innerHTML = '<div class="alert alert-success">Congrats! Everyone you follow follows you back.</div>';
+        } else {
+          let html = '<h5>Users who don’t follow you back:</h5>';
+          html += '<ul class="list-group">';
+          non_followers.forEach(u => {
+            html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                      ${u.username}
+                      <span class="badge bg-secondary rounded-pill">${u.id}</span>
+                    </li>`;
+          });
+          html += '</ul>';
+          resDiv.innerHTML = html;
+        }
+
+        // 3) Trigger PDF download
+        const resp2 = await fetch('/analyze/pdf', {
+          method: 'POST',
+          body: formData
+        });
+        if (!resp2.ok) {
+          throw new Error(await resp2.text());
+        }
+        const blob = await resp2.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `unfollowers_report_${Date.now()}.pdf`;
+        document.body.appendChild(a);
         a.click();
+        a.remove();
         URL.revokeObjectURL(url);
+
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
         overlay.classList.remove('active');
         form.reset();
-        updateFileList();
+        document.getElementById('results').innerHTML = '';
       }
     });
   </script>
