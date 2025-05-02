@@ -1,14 +1,21 @@
+
+"""
+Instagram Unfollower Analyzer
+-----------------------------
+A Flask application to identify users who don't follow you back on Instagram.
+"""
+
+from version import __version__
 import os
 import json
+import sys
 import time
 from io import BytesIO
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, send_file, jsonify, render_template
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
-from reportlab.platypus import Table, TableStyle
-from flask import Flask, request, send_file, jsonify, render_template 
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
 app = Flask(__name__)
 app.config.update(
@@ -17,98 +24,175 @@ app.config.update(
     JSON_AS_ASCII=False
 )
 
+ERROR_MESSAGES = {
+    'missing_files': "Please upload both following.json and followers.json files",
+    'invalid_json': "The file contains invalid JSON formatting",
+    'empty_file': "Uploaded file appears to be empty",
+    'invalid_extension': "Only JSON files are allowed",
+    'processing_error': "Error processing your request"
+}
+
 class InstagramAnalyzer:
+    """
+    Core analyzer class for processing Instagram follower data
+    
+    Methods:
+    - validate_files: Verify uploaded files meet requirements
+    - process_file: Load and validate JSON data
+    - extract_users: Extract usernames from Instagram data structure
+    - get_non_followers: Calculate list of non-followers
+    """
+    
     @staticmethod
     def validate_files(files):
+        """Validate uploaded files meet requirements"""
         if 'following' not in files or 'followers' not in files:
-            raise ValueError("Both files are required")
+            raise ValueError(ERROR_MESSAGES['missing_files'])
             
-        following = files['following']
-        followers = files['followers']
+        f = files['following']
+        u = files['followers']
         
-        if not (following and followers):
-            raise ValueError("Empty file upload detected")
+        if not (f and u):
+            raise ValueError(ERROR_MESSAGES['empty_file'])
             
-        if not (following.filename.endswith('.json') and 
-                followers.filename.endswith('.json')):
-            raise ValueError("Only JSON files are allowed")
+        if not (f.filename.lower().endswith('.json') and 
+                u.filename.lower().endswith('.json')):
+            raise ValueError(ERROR_MESSAGES['invalid_extension'])
 
     @staticmethod
-    def process_file(file):
+    def process_file(file_storage):
+        """Load and validate JSON data from file"""
         try:
-            data = json.load(file)
-            return data
+            return json.load(file_storage)
         except json.JSONDecodeError:
-            raise ValueError("Invalid JSON format in uploaded file")
-        except Exception as e:
-            raise ValueError(f"File processing error: {str(e)}")
+            raise ValueError(ERROR_MESSAGES['invalid_json'])
 
     @staticmethod
+    def print_version():
+        """Print the version of the application."""
+        print(f"instagram-unfollow-checker-py v{__version__}")
+    if "--version" in sys.argv:
+        print_version()
+        sys.exit(0)
+
     def extract_users(data, key):
+        """Extract usernames from Instagram data structure"""
         users = []
-        for item in data.get(key, []):
+        entries = data.get(key, []) if isinstance(data, dict) else data
+        
+        for item in entries:
             try:
-                if isinstance(item, dict) and item.get('string_list_data'):
-                    users.append(item['string_list_data'][0]['value'])
-            except (KeyError, IndexError, TypeError):
+                string_data = item.get('string_list_data', [])
+                if string_data and isinstance(string_data, list):
+                    users.append(string_data[0]['value'])
+            except (KeyError, TypeError, IndexError):
                 continue
-        return sorted(list(set(users)))
+                
+        return sorted(set(users))
+
+    @classmethod
+    def get_non_followers(cls, following_file, followers_file):
+        """Calculate list of users who don't follow back"""
+        following_data = cls.process_file(following_file)
+        followers_data = cls.process_file(followers_file)
+        
+        following = cls.extract_users(following_data, 'relationships_following')
+        followers = cls.extract_users(followers_data, 'relationships_followers')
+        
+        return list(set(following) - set(followers))
 
 @app.route('/')
 def home():
+    """Render main interface"""
     return render_template('index.html')
 
-@app.route('/analyze', methods=['POST'])
-def analyze():
+@app.route('/analyze/json', methods=['POST'])
+def analyze_json():
+    """JSON API endpoint for non-follower analysis"""
     try:
-        # Validate request
-        analyzer = InstagramAnalyzer()
-        analyzer.validate_files(request.files)
+        InstagramAnalyzer.validate_files(request.files)
+        non_followers = InstagramAnalyzer.get_non_followers(
+            request.files['following'],
+            request.files['followers']
+        )
+        result = [{'id': i+1, 'username': user} 
+                 for i, user in enumerate(non_followers)]
+        return jsonify(non_followers=result)
         
-        # Process files
-        following_data = analyzer.process_file(request.files['following'])
-        followers_data = analyzer.process_file(request.files['followers'])
-        
-        # Extract users
-        following = analyzer.extract_users(following_data, "relationships_following")
-        followers = analyzer.extract_users(followers_data, "relationships_followers")
-        
-        # Compare lists
-        non_followers = list(set(following) - set(followers))
-        
-        # Generate PDF
-        pdf_buffer = BytesIO()
-        pdf = canvas.Canvas(pdf_buffer, pagesize=letter)
-        
-        # PDF Content
-        pdf.setTitle("Instagram Unfollower Report")
-        pdf.setFont("Helvetica-Bold", 18)
-        pdf.drawString(72, 750, "Instagram Unfollower Report")
-        
-        # Create table
-        data = [[i+1, user] for i, user in enumerate(non_followers)]
-        table = Table(data, colWidths=[50, 450])
-        table.setStyle(TableStyle([
+    except Exception as e:
+        return jsonify(error=str(e)), 400
+
+@app.route('/analyze/pdf', methods=['POST'])
+def analyze_pdf():
+    """Generate PDF report of non-followers"""
+    try:
+        InstagramAnalyzer.validate_files(request.files)
+        non_followers = InstagramAnalyzer.get_non_followers(
+            request.files['following'],
+            request.files['followers']
+        )
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+        styles = getSampleStyleSheet()
+
+        # Build report title
+        elements.append(Paragraph("Instagram Unfollower Report", styles['Title']))
+        elements.append(Spacer(1, 20))
+
+        # Prepare table data
+        if non_followers:
+            data = [["#", "Username"]] + [
+                [str(i+1), user] for i, user in enumerate(non_followers)
+            ]
+            col_widths = [50, 450]
+        else:
+            data = [["No non-followers found"]]
+            col_widths = [500]
+
+        # Configure table styling
+        table = Table(data, colWidths=col_widths)
+        table_style = TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#F8F9FA")),
             ('TEXTCOLOR', (0,0), (-1,0), colors.HexColor("#E1306C")),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('FONTSIZE', (0,0), (-1,0), 12),
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
             ('GRID', (0,0), (-1,-1), 1, colors.lightgrey),
-        ]))
-        table.wrapOn(pdf, 0, 0)
-        table.drawOn(pdf, 72, 700)
+        ])
         
-        pdf.save()
-        pdf_buffer.seek(0)
-        
+        if not non_followers:
+            table_style.add('SPAN', (0,0), (-1,0))
+            
+        table.setStyle(table_style)
+        elements.append(table)
+
+        doc.build(elements)
+        buffer.seek(0)
+
         return send_file(
-            pdf_buffer,
+            buffer,
             as_attachment=True,
             download_name=f"unfollowers_report_{int(time.time())}.pdf",
             mimetype='application/pdf'
         )
-
+        
     except Exception as e:
-        app.logger.error(f"Error: {str(e)}")
         return jsonify(error=str(e)), 400
+
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to all responses"""
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
+@app.errorhandler(413)
+def handle_file_too_large(error):
+    """Handle file size limit errors"""
+    return jsonify(error=ERROR_MESSAGES['processing_error']), 413
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
