@@ -1,7 +1,7 @@
 **Version**: v2.1.2
 # 📉 Instagram Unfollower Detective
 
-[![Version](https://img.shields.io/badge/version-2.1.1-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
+[![Version](https://img.shields.io/badge/version-2.1.2-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 
@@ -34,14 +34,12 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
   - ⚠️ Comprehensive error logging
 
 ---
-
-## 🛠 Recent Improvements (v2.1.1)
+## 🛠 Recent Improvements (v2.1.2)
 
 ### Core Enhancements
 - Added dual-format JSON parsing for Instagram's API changes
 - Implemented format auto-detection algorithm
 - Reduced memory footprint by 40% in PDF generation
-
 ### Testing Infrastructure
 - Added 12+ pytest cases covering edge scenarios
 - Implemented destructive input testing
@@ -53,10 +51,8 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 - Client-side file validation (type/size)
 
 ---
-
 ## 📦 Installation
 
-```bash
 # Clone repository
 git clone https://github.com/prabinbessie/instagram-unfollower-checker.git
 cd instagram-unfollower-checker
@@ -72,26 +68,25 @@ pip install -r requirements.txt
 # Start development server
 flask run --port 5000 --debug
 
-📚 Usage Guide
+## 📚 Usage Guide
 
-Export Instagram Data
-Settings → Security → Download Data → Select "Followers and Following"
-Upload Files
-followers.json (required)
-following.json (required)
+### Export Instagram Data
+- Navigate to Settings → Security → Download Data → Select "Followers and Following."
+- Upload Files
+- Upload both followers.json and following.json files (required).
 Analyze Relationships
-Results show users who don't follow you back with:
+The results will show users who don't follow you back, along with:
 Instagram profile links
 Follow timestamps
 Account activity indicators
-Export Options
-PDF Report (immediate download)
-CSV Export (beta)
-Shareable Link (24h retention)
 
-🧩 Technical Architecture
+### Export Options
+You can download the report in the following formats:
+📄 PDF Report (immediate download)
+📋 CSV Export (beta)
+🔗 Shareable Link (24h retention)
 
-text
+## 🧩 Technical Architecture
 instagram-unfollower-checker/
 ├── app/                  
 │   ├── processors/       
@@ -104,29 +99,35 @@ instagram-unfollower-checker/
 │   ├── css/              
 │   └── js/               
 └── requirements.txt  
-
-🤝 Contributing
-
-Fork the repository
-Create feature branch:
-git checkout -b feat/your-feature
-Commit changes:
+## 🤝 How to Contribute
+If you would like to contribute to the project, follow the steps below:
+- Fork the repository
+- Create a personal copy of the repository on GitHub.
+Create a new branch
+### For example:
+- git checkout -b feat/awesome-feature
+- Make your changes
+- Ensure that your changes follow the project's coding standards and 
+- include tests where necessary.
+Commit your changes
+Use a meaningful commit message, such as:
 git commit -m "feat: add awesome feature"
-Push to branch:
-git push origin feat/your-feature
+Push to your fork
+Push your branch to your forked repository on GitHub:
+git push origin feat/awesome-feature
 Open a Pull Request
-Development Requirements:
+Open a pull request to the original repository. Provide a description of the changes and why they are useful.
+### Development Requirements:
+- 90%+ test coverage
+- PEP-8 compliance
+- Type hints for new code
+Update CHANGELOG.md with new features and fixes
 
-90%+ test coverage
-PEP-8 compliance
-Type hints for new code
-Update CHANGELOG.md
-📜 License
+## 📜 License
 
-MIT License - See LICENSE for full text.
+This project is licensed under the MIT License. See the LICENSE file for more details.
 
-📬 Contact
-
-For support/issues:
-📧 bhandariprabin84@gmail.com
-🐦 @prabinbessie
+## 📬 Contact
+For any support or issues:
+📧 Email: bhandariprabin84@gmail.com
+😎Instagram: @prabinbessiehere
