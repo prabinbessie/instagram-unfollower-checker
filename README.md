@@ -52,21 +52,21 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 
 ## 📦 Installation
 
-# Clone repository
+### Clone repository
 - `git clone https://github.com/prabinbessie/instagram-unfollower-checker.git`
 - `cd instagram-unfollower-checker`
 
-# Create virtual environment
+### Create virtual environment
 - `python -m venv venv`
 
-# Activate environment
+### Activate environment
 - `source venv/bin/activate`  # Linux/macOS
 - `.\venv\Scripts\activate`   # Windows
 
-# Install dependencies
+### Install dependencies
 `pip install -r requirements.txt`
 
-# Start development server
+### Start development server
 `flask run --port 5000 --debug`
 
 ## 📚 Usage Guide
@@ -95,21 +95,21 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 ## 🧩 Technical Architecture
 
 -instagram-unfollower-checker/
-├── app/                  # Core application logic
-│   ├── processors/       # Data transformation handlers
-│   └── utils/            # Helper functions
-├── tests/                # Test suite (pytest)
-│   ├── unit/             # Component tests
-│   └── integration/      # End-to-end workflows
-├── templates/            # Jinja2 templates
-├── static/               # Web assets
-│   ├── css/              # Style sheets
-│   └── js/               # Client-side logic
-└── requirements.txt      # Dependency manifest
+├── app/                 
+│   ├── processors/      
+│   └── utils/            
+├── tests/                
+│   ├── unit/             
+│   └── integration/      
+├── templates/            
+├── static/               
+│   ├── css/            
+│   └── js/               
+└── requirements.txt     
 
 ## 🤝 Contributing
 
-## We welcome contributions! Please follow these steps:
+### We welcome contributions! Please follow these steps:
 
 - Fork the repository
 - Clone your fork locally
@@ -123,11 +123,11 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 - Push changes:
 `git push origin feat/your-feature`
 - Create Pull Request with detailed description
-## 📜 License
+##  📜 License
 
 Distributed under MIT License. See LICENSE for full text.
 
-## 📬 Contact
+##  📬 Contact
 
 - Prabin Bhandari
 - 📧 bhandariprabin84@gmail.com
