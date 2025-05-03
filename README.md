@@ -1,2 +1,2 @@
 < this is live deployed web app for instgaram follower check >
-**Version**: v2.0.0
+**Version**: v2.1.1

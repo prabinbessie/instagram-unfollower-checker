@@ -39,6 +39,15 @@
       z-index: 1050;
     }
     .loading-overlay.active { display: flex; }
+     /* Added error styling */
+     .alert-danger {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+    .list-group-item:hover {
+      background: #f8f9fa;
+    }
   </style>
 </head>
 <body>
@@ -117,83 +126,111 @@
               <a href="https://prabinb.com.np/?i=1" target="_blank" class="text-decoration-none">
                 Visit My Portfolio <i class="fas fa-external-link-alt"></i>
               </a>
-              <p class="version-label">Version V:2:0:0</p>
+              <p class="version-label">Version V.2:1:1</p>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
   <script>
     const overlay = document.getElementById('loadingOverlay');
     const form = document.getElementById('uploadForm');
 
+    async function showAlert(message, isError = true) {
+      const alert = document.createElement('div');
+      alert.className = `alert ${isError ? 'alert-danger' : 'alert-success'} mt-3`;
+      alert.innerHTML = `
+        <i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'} me-2"></i>
+        ${message}
+      `;
+      const results = document.getElementById('results');
+      results.prepend(alert);
+      setTimeout(() => alert.remove(), 5000);
+    }
+
     form.addEventListener('submit', async e => {
       e.preventDefault();
-      const fInput = document.getElementById('following');
-      const uInput = document.getElementById('followers');
-      if (!fInput.files.length || !uInput.files.length) {
-        alert('Please select both JSON files before proceeding.');
-        return;
-      }
-
       overlay.classList.add('active');
-      const formData = new FormData(form);
-
+      
       try {
-        // 1) Fetch JSON list
-        const resp1 = await fetch('/analyze/json', {
+        // Client-side validation
+        const files = {
+          following: document.getElementById('following').files[0],
+          followers: document.getElementById('followers').files[0]
+        };
+        
+        if (!files.following || !files.followers) {
+          showAlert('Please select both JSON files');
+          return;
+        }
+
+        if ([files.following.size, files.followers.size].some(s => s > 2 * 1024 * 1024)) {
+          showAlert('File size exceeds 2MB limit');
+          return;
+        }
+
+        // Process files
+        const formData = new FormData(form);
+        
+        // Get JSON results
+        const jsonResponse = await fetch('/analyze/json', {
           method: 'POST',
           body: formData
         });
-        if (!resp1.ok) {
-          const err = await resp1.json();
-          throw new Error(err.error || resp1.statusText);
+        
+        if (!jsonResponse.ok) {
+          const error = await jsonResponse.json();
+          throw new Error(error.error);
         }
-        const { non_followers } = await resp1.json();
 
-        // 2) Render on page
-        const resDiv = document.getElementById('results');
+        const { non_followers } = await jsonResponse.json();
+        
+        // Display results
+        const results = document.getElementById('results');
         if (non_followers.length === 0) {
-          resDiv.innerHTML = '<div class="alert alert-success">Congrats! Everyone you follow follows you back.</div>';
+          results.innerHTML = `
+            <div class="alert alert-success">
+              All your follows are mutual! 🤝
+            </div>
+          `;
         } else {
-          let html = '<h5>Users who don’t follow you back:</h5>';
-          html += '<ul class="list-group">';
-          non_followers.forEach(u => {
-            html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                      ${u.username}
-                      <span class="badge bg-secondary rounded-pill">${u.id}</span>
-                    </li>`;
-          });
-          html += '</ul>';
-          resDiv.innerHTML = html;
+          results.innerHTML = `
+            <h5 class="mb-3">${non_followers.length} Non-Followers Found</h5>
+            <div class="list-group">
+              ${non_followers.map(user => `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                  @${user.username}
+                  <span class="badge bg-secondary">#${user.id}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
         }
 
-        // 3) Trigger PDF download
-        const resp2 = await fetch('/analyze/pdf', {
+        // Auto-download PDF
+        const pdfResponse = await fetch('/analyze/pdf', {
           method: 'POST',
           body: formData
         });
-        if (!resp2.ok) {
-          throw new Error(await resp2.text());
+        
+        if (pdfResponse.ok) {
+          const blob = await pdfResponse.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `unfollowers_${Date.now()}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
         }
-        const blob = await resp2.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `unfollowers_report_${Date.now()}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
 
       } catch (err) {
-        alert('Error: ' + err.message);
+        showAlert(err.message.includes('413') 
+          ? 'File too large (max 2MB)' 
+          : err.message);
       } finally {
         overlay.classList.remove('active');
-        form.reset();
-        document.getElementById('results').innerHTML = '';
       }
     });
   </script>

@@ -10,6 +10,7 @@ import os
 import json
 import sys
 import time
+import logging
 from io import BytesIO
 from flask import Flask, request, send_file, jsonify, render_template
 from reportlab.lib.pagesizes import letter
@@ -24,6 +25,10 @@ app.config.update(
     JSON_AS_ASCII=False
 )
 
+# Configure logging
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.DEBUG)
+
 ERROR_MESSAGES = {
     'missing_files': "Please upload both following.json and followers.json files",
     'invalid_json': "The file contains invalid JSON formatting",
@@ -35,12 +40,6 @@ ERROR_MESSAGES = {
 class InstagramAnalyzer:
     """
     Core analyzer class for processing Instagram follower data
-    
-    Methods:
-    - validate_files: Verify uploaded files meet requirements
-    - process_file: Load and validate JSON data
-    - extract_users: Extract usernames from Instagram data structure
-    - get_non_followers: Calculate list of non-followers
     """
     
     @staticmethod
@@ -68,25 +67,27 @@ class InstagramAnalyzer:
             raise ValueError(ERROR_MESSAGES['invalid_json'])
 
     @staticmethod
-    def print_version():
-        """Print the version of the application."""
-        print(f"instagram-unfollow-checker-py v{__version__}")
-    if "--version" in sys.argv:
-        print_version()
-        sys.exit(0)
-
     def extract_users(data, key):
         """Extract usernames from Instagram data structure"""
         users = []
-        entries = data.get(key, []) if isinstance(data, dict) else data
         
-        for item in entries:
-            try:
-                string_data = item.get('string_list_data', [])
-                if string_data and isinstance(string_data, list):
-                    users.append(string_data[0]['value'])
-            except (KeyError, TypeError, IndexError):
-                continue
+        # Handle list of containers (new Instagram format)
+        if isinstance(data, list):
+            for container in data:
+                entries = container.get(key, [])
+                for item in entries:
+                    try:
+                        users.append(item['string_list_data'][0]['value'])
+                    except (KeyError, IndexError, TypeError):
+                        continue
+        # Handle direct dictionary format
+        elif isinstance(data, dict):
+            entries = data.get(key, [])
+            for item in entries:
+                try:
+                    users.append(item['string_list_data'][0]['value'])
+                except (KeyError, IndexError, TypeError):
+                    continue
                 
         return sorted(set(users))
 
@@ -100,6 +101,15 @@ class InstagramAnalyzer:
         followers = cls.extract_users(followers_data, 'relationships_followers')
         
         return list(set(following) - set(followers))
+
+    @staticmethod
+    def print_version():
+        """Print the version of the application."""
+        print(f"instagram-unfollow-checker-py v{__version__}")
+
+if "--version" in sys.argv:
+    InstagramAnalyzer.print_version()
+    sys.exit(0)
 
 @app.route('/')
 def home():
@@ -120,6 +130,7 @@ def analyze_json():
         return jsonify(non_followers=result)
         
     except Exception as e:
+        app.logger.error(f"Error processing request: {str(e)}")
         return jsonify(error=str(e)), 400
 
 @app.route('/analyze/pdf', methods=['POST'])
@@ -179,6 +190,7 @@ def analyze_pdf():
         )
         
     except Exception as e:
+        app.logger.error(f"PDF generation error: {str(e)}")
         return jsonify(error=str(e)), 400
 
 @app.after_request
