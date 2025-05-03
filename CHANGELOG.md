@@ -1,6 +1,7 @@
-## [2.1.1] – YYYY-MM-DD
+## [2.1.2] – 2025-05-03
 
-### Core Fixes & Enhancements
+## 🛠 Recent Improvements (v2.1.2)
+
 
 #### Error Handling
 - Added robust client-side validation for JSON file uploads  
@@ -19,11 +20,10 @@
 
 ### Frontend Improvements
 
-#### UI/UX
-- Added animated loading overlay with progress indicators  
-- Implemented auto-dismissible toast notifications for errors/success  
-- Introduced scrollable results container (max-height: 60vh)  
-- Added Instagram profile links for identified non-followers  
+### UX Improvements
+- Animated SVG loaders with progress states
+- Toast notification system for errors
+- Client-side file validation (type/size) 
 
 #### Validation
 - Client-side file size checks (2 MB limit enforced pre-upload)  
@@ -37,7 +37,7 @@
 
 ### Testing & Reliability
 
-#### Test Suite
-- Added 12 new test cases covering edge scenarios  
-- Fixed version command test (`--version` CLI argument)  
-- Implemented destructive testing for malformed JSON payloads
+### Testing Infrastructure
+- Added 12+ pytest cases covering edge scenarios
+- Implemented destructive input testing
+- Added CI pipeline template (GitHub Actions)

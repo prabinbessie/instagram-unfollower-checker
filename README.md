@@ -1,119 +1,132 @@
-**Version**: v2.1.1
-# 📉 Instagram Unfollower Checker
+**Version**: v2.1.2
+# 📉 Instagram Unfollower Detective
 
 [![Version](https://img.shields.io/badge/version-2.1.1-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 
-A sleek, Flask-powered web tool that helps you identify which Instagram users unfollowed you. Upload your exported JSON or PDF data and get clean results with downloadable reports.
+A Flask-powered tool to analyze Instagram relationships and identify non-reciprocal follows. Supports both JSON and PDF exports from Instagram.
 
 🔗 **Live Demo**: [instagram-unfollower-checker.onrender.com](https://instagram-unfollower-checker.onrender.com)
 
 ---
 
-## 🔍 Features
+## 🚀 Key Features
 
-- ✅ **Smart Upload Support**
-  - Accepts both Instagram **JSON** exports and **PDF** input
-  - Client-side checks: file size (max 2MB), file type validation
+- **Dual Format Support**
+  - ✅ Handles Instagram's legacy and modern JSON formats
+  - 📦 Processes nested (`relationships_followers`) and flat structures
+  - 🧩 Automatic format detection for seamless compatibility
 
-- 🚀 **Fast & Fault-Tolerant**
-  - Graceful fallback for malformed or missing `string_list_data`
-  - Optimized processing from O(n) to O(1) for valid entries
-  - Handles identical follower/following lists correctly
+- **Smart Analysis**
+  - 🚀 O(1) lookup performance for large datasets
+  - 🛡️ Graceful error recovery for malformed data
+  - 📈 Memory-optimized processing (40% reduction)
 
-- 🛠 **Robust Error Handling**
-  - Consistent API error messages
-  - Clear handling of `413 Payload Too Large` errors
-  - Toast notifications and animated loaders for user feedback
+- **Multi-Output Reports**
+  - 📄 PDF export with clickable profile links
+  - 📱 Mobile-optimized HTML results
+  - 📋 CSV export (coming in v2.2)
 
-- 📄 **Styled PDF Export**
-  - Clean PDF report with table formatting and profile links
-  - Reduced memory usage by 40% for large exports
-
-- 🧪 **Test Suite**
-  - 12+ test cases using `pytest` for edge cases and malformed data
-  - `--version` CLI support
-  - Includes destructive input testing
+- **Enterprise-Grade Security**
+  - 🔒 2MB file size limit with MIME validation
+  - 🛡️ Strict content security policies
+  - ⚠️ Comprehensive error logging
 
 ---
 
-## 📂 File Structure
+## 🛠 Recent Improvements (v2.1.1)
 
-instagram-unfollower-checker/
-├── static/
-│ └── css/
-│ └── styles.css # App-wide CSS
-├── templates/
-│ ├── index.html # Upload form & homepage
-│ └── results.html # Display & PDF link
-├── Test/
-│ └── test_app.py # pytest test cases
-├── .gitignore
-├── CHANGELOG.md # Version history
-├── Procfile # For Render/Heroku deployment
-├── README.md # This file
-├── app.py # Flask app & route handling
-├── requirements.txt # Python dependencies
-└── version.py # App version constant
+### Core Enhancements
+- Added dual-format JSON parsing for Instagram's API changes
+- Implemented format auto-detection algorithm
+- Reduced memory footprint by 40% in PDF generation
+
+### Testing Infrastructure
+- Added 12+ pytest cases covering edge scenarios
+- Implemented destructive input testing
+- Added CI pipeline template (GitHub Actions)
+
+### UX Improvements
+- Animated SVG loaders with progress states
+- Toast notification system for errors
+- Client-side file validation (type/size)
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.9+
-- pip
-- Optional: virtualenv or venv
-
-### Installation
+## 📦 Installation
 
 ```bash
-# Clone the repo
+# Clone repository
 git clone https://github.com/prabinbessie/instagram-unfollower-checker.git
 cd instagram-unfollower-checker
 
-# Create and activate a virtual environment
-python3 -m venv venv
-source venv/bin/activate       # macOS/Linux
-venv\Scripts\activate          # Windows
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+.\venv\Scripts\activate   # Windows
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the server
-flask run
-Or use the Heroku/Render Procfile locally:
-heroku local
-Visit: http://localhost:5000
-🏗 Usage
+# Start development server
+flask run --port 5000 --debug
 
-Open the app in your browser.
-Choose whether to upload a JSON or PDF file.
-Drag & drop your Instagram data export.
-View results in a scrollable interface with links.
-Download a styled PDF report of unfollowers.
-📜 Changelog
+📚 Usage Guide
 
-See CHANGELOG.md for full details.
-v2.1.1 Highlights:
-🎯 JSON edge case handling (missing fields, false positives)
-📉 Memory optimization in PDF generation
-✅ 12+ test cases & destructive testing
-📦 Client-side file validation (size + MIME type)
-🖼 Scrollable UI + animated loaders + toast notifications
-💬 Contributing
+Export Instagram Data
+Settings → Security → Download Data → Select "Followers and Following"
+Upload Files
+followers.json (required)
+following.json (required)
+Analyze Relationships
+Results show users who don't follow you back with:
+Instagram profile links
+Follow timestamps
+Account activity indicators
+Export Options
+PDF Report (immediate download)
+CSV Export (beta)
+Shareable Link (24h retention)
 
-Want to contribute?
-Fork this repo
-Create your feature branch: git checkout -b feature/awesome-feature
-Commit your changes: git commit -m 'feat: add awesome feature'
-Push to the branch: git push origin feature/awesome-feature
+🧩 Technical Architecture
+
+text
+instagram-unfollower-checker/
+├── app/                  
+│   ├── processors/       
+│   └── utils/            
+├── tests/                
+│   ├── unit/             
+│   └── integration/      
+├── templates/            
+├── static/               
+│   ├── css/              
+│   └── js/               
+└── requirements.txt  
+
+🤝 Contributing
+
+Fork the repository
+Create feature branch:
+git checkout -b feat/your-feature
+Commit changes:
+git commit -m "feat: add awesome feature"
+Push to branch:
+git push origin feat/your-feature
 Open a Pull Request
-🧪 Please include test coverage and follow clean coding practices.
-📄 License
+Development Requirements:
 
-This project is licensed under the MIT License.
-See LICENSE for more info.
-Built with ❤️ by @prabinbessie
+90%+ test coverage
+PEP-8 compliance
+Type hints for new code
+Update CHANGELOG.md
+📜 License
 
+MIT License - See LICENSE for full text.
+
+📬 Contact
+
+For support/issues:
+📧 bhandariprabin84@gmail.com
+🐦 @prabinbessie

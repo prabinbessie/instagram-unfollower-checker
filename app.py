@@ -70,17 +70,18 @@ class InstagramAnalyzer:
     def extract_users(data, key):
         """Extract usernames from Instagram data structure"""
         users = []
-        
-        # Handle list of containers (new Instagram format)
         if isinstance(data, list):
             for container in data:
-                entries = container.get(key, [])
+                if key in container:
+                    entries = container.get(key, [])
+                else:
+                    entries = [container] if 'string_list_data' in container else []
+                
                 for item in entries:
                     try:
                         users.append(item['string_list_data'][0]['value'])
                     except (KeyError, IndexError, TypeError):
                         continue
-        # Handle direct dictionary format
         elif isinstance(data, dict):
             entries = data.get(key, [])
             for item in entries:
