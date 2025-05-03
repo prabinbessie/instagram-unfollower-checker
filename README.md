@@ -117,10 +117,3 @@ This project is licensed under the MIT License.
 See LICENSE for more info.
 Built with ❤️ by @prabinbessie
 
----
-
-Let me know if you also want:
-- A screenshot section
-- Badges for deployments/tests
-- A `CONTRIBUTING.md` or `CODE_OF_CONDUCT.md` template  
-Would you like those now?
