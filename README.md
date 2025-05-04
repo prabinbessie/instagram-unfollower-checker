@@ -37,6 +37,8 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 - Added Instagram's 2024 JSON format support
 - Implemented hybrid format detection algorithm
 - Reduced PDF memory footprint by 40%
+- 📁 Added sample JSON files for testing and demo purposes (`sample_json/`)
+
 
 ### Testing Infrastructure
 - Added 12+ edge case test scenarios
@@ -69,43 +71,65 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 ### Start development server
 `flask run --port 5000 --debug`
 
-## 📚 Usage Guide
+## 🔒 Privacy & Data Handling
 
-- Step 1: Export Instagram Data
-- Go to Instagram Settings → Privacy & Security
-- Select Download Data
-- Choose Followers and Following format
-- Wait for email with data download link
-- Step 2: Upload Files
+This tool **does not collect, store, or access** your Instagram data in any way.All data processing happens locally in your browser or server memory during the session.
 
-### Required files:
-- followers.json
-- following.json
-- Step 3: Analyze Relationships
+- ❌ No login or API access to Instagram
+- ❌ No data is sent to third-party servers
+- ✅ Files are deleted after session ends or when the tab is closed
+- ✅ You are in full control of your data
 
-### Results include:
-- 🔗 Instagram profile links
-- 📊 Activity indicators
-- 🚫 Non-reciprocal follows
-- Export Options
+---
+
+## 📥 How to Get Your Instagram Data (With Screenshots)
+
+To use this tool, you’ll need to manually download your Instagram data. Here’s how:
+
+1. **Go to Instagram → Settings → Your Information and Permisson → Download your information**
+2. Select **"Following and Followers"** (or "Connections")
+3. Choose **JSON** as the format
+4. Submit your request and wait for an email
+5. Download the ZIP file from the link in the email
+6. Extract it, and upload :
+   - `followers.json`
+   - `following.json`
+
+![Instagram Data Download Screenshot](static/img/instagram_data_download.png)
+
+---
+
+## 🧾 What Do You Get?
+
+Once the files are uploaded, the tool processes them and shows:
+
+- 🔗 Clickable Instagram profile links
+- ❌ People you follow who don’t follow you back
+- 📄 Downloadable PDF report
+- 📊 Visual summary (CSV export coming soon)
+
+![Sample Output Screenshot](static/img/sample_results.png)
 
 ### Immediate PDF download
 - CSV export (In V3 )
 - Shareable link (24h retention (in V3))
 ## 🧩 Technical Architecture
 
--instagram-unfollower-checker/
-├── app/                 
-│   ├── processors/      
-│   └── utils/            
-├── tests/                
-│   ├── unit/             
-│   └── integration/      
-├── templates/            
-├── static/               
-│   ├── css/            
-│   └── js/               
-└── requirements.txt     
+├── instagram-unfollower-checker/
+│   ├── static/
+│   │   └── css/
+│   ├── templates/
+│   ├── sample_json/           
+│   │   ├── followers.json
+│   │   └── following.json
+│   ├── .gitignore
+│   ├── CHANGELOG.md
+│   ├── Procfile
+│   ├── README.md
+│   ├── app.py
+│   ├── requirements.txt
+│   └── version.py
+  
 
 ## 🤝 Contributing
 
@@ -129,7 +153,7 @@ Distributed under MIT License. See LICENSE for full text.
 
 ##  📬 Contact
 
-- Prabin Bhandari
+**Prabin Bhandari**
 - 📧 bhandariprabin84@gmail.com
 - 📱 Instagram @prabinbhandariii
 - 🐦 Twitter @prabinbessie
