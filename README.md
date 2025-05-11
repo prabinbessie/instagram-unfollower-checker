@@ -52,7 +52,7 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 ---
 
 ##  Installation
-
+```bash
 ### Clone repository
 - `git clone https://github.com/prabinbessie/instagram-unfollower-checker.git`
 - `cd instagram-unfollower-checker`
@@ -65,11 +65,11 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 - `.\venv\Scripts\activate`   # Windows
 
 ### Install dependencies
-`pip install -r requirements.txt`
+- `pip install -r requirements.txt`
 
 ### Start development server
 `flask run --port 5000 --debug`
-
+```
 ## Privacy & Data Handling
 
 This tool **does not collect, store, or access** your Instagram data in any way.All data processing happens locally in your browser or server memory during the session.
