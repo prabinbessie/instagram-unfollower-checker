@@ -20,9 +20,8 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 - 🧩 Automatic format detection with fallback mechanisms
 
 ### Performance & Security
-- 🚀 O(1) lookup performance for datasets >100k entries
-- 🛡️ Content validation (MIME types, size limits <2MB)
-- 📈 40% memory reduction in PDF generation
+-  O(1) lookup performance for datasets >100k entries
+-  C40% memory reduction in PDF generation
 
 ### Multi-Format Reporting
 - 📄 PDF with clickable profile links
@@ -37,7 +36,7 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 - Added Instagram's 2024 JSON format support
 - Implemented hybrid format detection algorithm
 - Reduced PDF memory footprint by 40%
-- 📁 Added sample JSON files for testing and demo purposes (`sample_json/`)
+- Added sample JSON files for testing and demo purposes (`sample_json/`)
 
 
 ### Testing Infrastructure
@@ -46,13 +45,13 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 - GitHub Actions CI pipeline template
 
 ### User Experience
-- 🎨 Animated SVG loaders with progress states
-- 📢 Toast notification system for errors
-- 📁 Client-side file validation (type/size)
+-  Animated SVG loaders with progress states
+- Toast notification system for errors
+- Client-side file validation (type/size)
 
 ---
 
-## 📦 Installation
+##  Installation
 
 ### Clone repository
 - `git clone https://github.com/prabinbessie/instagram-unfollower-checker.git`
@@ -71,18 +70,18 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 ### Start development server
 `flask run --port 5000 --debug`
 
-## 🔒 Privacy & Data Handling
+## Privacy & Data Handling
 
 This tool **does not collect, store, or access** your Instagram data in any way.All data processing happens locally in your browser or server memory during the session.
 
-- ❌ No login or API access to Instagram
-- ❌ No data is sent to third-party servers
-- ✅ Files are deleted after session ends or when the tab is closed
-- ✅ You are in full control of your data
+-  No login or API access to Instagram
+-  No data is sent to third-party servers
+-  Files are deleted after session ends or when the tab is closed
+- You are in full control of your data
 
 ---
 
-## 📥 How to Get Your Instagram Data (With Screenshots)
+##  How to Get Your Instagram Data (With Screenshots)
 
 To use this tool, you’ll need to manually download your Instagram data. Here’s how:
 
@@ -95,11 +94,11 @@ To use this tool, you’ll need to manually download your Instagram data. Here�
    - `followers.json`
    - `following.json`
 
-![Instagram Data Download Screenshot](static/img/instagram_data_download.png)
+![Instagram Data Download Screenshot](static/img/instagram_data_download.jpg)
 
 ---
 
-## 🧾 What Do You Get?
+## What Do You Get?
 
 Once the files are uploaded, the tool processes them and shows:
 
@@ -113,22 +112,24 @@ Once the files are uploaded, the tool processes them and shows:
 ### Immediate PDF download
 - CSV export (In V3 )
 - Shareable link (24h retention (in V3))
-## 🧩 Technical Architecture
+##  Technical Architecture
 
-├── instagram-unfollower-checker/
-│   ├── static/
-│   │   └── css/
-│   ├── templates/
-│   ├── sample_json/           
-│   │   ├── followers.json
-│   │   └── following.json
-│   ├── .gitignore
-│   ├── CHANGELOG.md
-│   ├── Procfile
-│   ├── README.md
-│   ├── app.py
-│   ├── requirements.txt
-│   └── version.py
+```plaintext
+instagram-unfollower-checker/
+├── static/
+│   └── css/
+├── templates/
+├── sample_json/           
+│   ├── followers.json
+│   └── following.json
+├── .gitignore
+├── CHANGELOG.md
+├── Procfile
+├── README.md
+├── app.py
+├── requirements.txt
+└── version.py
+```
   
 
 ## 🤝 Contributing
@@ -151,9 +152,9 @@ Once the files are uploaded, the tool processes them and shows:
 
 Distributed under MIT License. See LICENSE for full text.
 
-##  📬 Contact
+##  📬Contact
 
 **Prabin Bhandari**
 - 📧 bhandariprabin84@gmail.com
-- 📱 Instagram @prabinbhandariii
-- 🐦 Twitter @prabinbessie
+-  Instagram @prabinbhandariii
+-  Twitter @prabinbessie
