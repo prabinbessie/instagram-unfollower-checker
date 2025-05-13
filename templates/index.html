@@ -1,238 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Instagram Unfollower Analyzer</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --ig-gradient: linear-gradient(135deg, #833ab4, #e1306c, #fcb045);
-    }
-    body { background-color: #f0f2f5; }
-    .gradient-bg {
-      background: var(--ig-gradient);
-      color: #fff;
-      padding: 4rem 0;
-      clip-path: ellipse(130% 100% at 50% 0%);
-      text-align: center;
-    }
-    .developer-footer {
-      text-align: center;
-      padding: 1.5rem;
-      background: #fff;
-      border-radius: 0.5rem;
-      margin-top: 3rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    .version-label {
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 0.5rem;
-    }
-    .loading-overlay {
-      position: fixed; top:0; left:0; width:100%; height:100%;
-      background: rgba(255,255,255,0.9);
-      backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center;
-      z-index: 1050;
-    }
-    .loading-overlay.active { display: flex; }
-     /* Added error styling */
-     .alert-danger {
-      background: #f8d7da;
-      border-color: #f5c6cb;
-      color: #721c24;
-    }
-    .list-group-item:hover {
-      background: #f8f9fa;
-    }
-  </style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Unfollower Checker v3</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/style.css">
+<style>
+  :root {
+    --ig-pink: #E1306C;
+    --ig-purple: #833AB4;
+    --ig-blue: #405DE6;
+}
+
+body {
+    background: #fafafa;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.ig-header {
+    background: linear-gradient(45deg, var(--ig-blue), var(--ig-purple), var(--ig-pink));
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.upload-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.file-upload {
+    margin: 1.5rem 0;
+    border: 2px dashed #ddd;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.file-upload:hover {
+    border-color: var(--ig-pink);
+    background: rgba(225, 48, 108, 0.05);
+}
+
+.btn-analyze {
+    background: var(--ig-pink);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 0.5rem;
+    width: 100%;
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.btn-analyze:hover {
+    transform: translateY(-2px);
+    background: #C9225B;
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.username {
+    color: var(--ig-pink);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.username:hover {
+    color: var(--ig-purple);
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Complete CSS available in GitHub repo */
+</style>
+  </head>
 <body>
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="text-center">
-      <div class="spinner-border text-primary" role="status" style="width:3rem; height:3rem;"></div>
-      <h4 class="mt-3">Analyzing Your Followers...</h4>
-      <p class="text-muted">This may take a few seconds</p>
-    </div>
-  </div>
-
-  <div class="gradient-bg">
-    <h1 class="display-4 fw-bold"><i class="fab fa-instagram"></i> Unfollower Detective</h1>
-    <p class="lead">Discover who stopped following you on Instagram</p>
-  </div>
-
-  <div class="container my-5">
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <div class="card shadow-sm">
-          <div class="card-body p-4">
-            <form id="uploadForm" method="post" enctype="multipart/form-data">
-              <!-- Following JSON -->
-              <div class="mb-4">
-                <label for="following" class="form-label">
-                  <i class="fas fa-user-plus me-2"></i>
-                  Upload <code>following.json</code>
-                </label>
-                <input
-                  type="file"
-                  class="form-control"
-                  id="following"
-                  name="following"
-                  accept=".json"
-                  required
-                >
-              </div>
-
-              <!-- Followers JSON -->
-              <div class="mb-4">
-                <label for="followers" class="form-label">
-                  <i class="fas fa-user-check me-2"></i>
-                  Upload <code>followers.json</code>
-                </label>
-                <input
-                  type="file"
-                  class="form-control"
-                  id="followers"
-                  name="followers"
-                  accept=".json"
-                  required
-                >
-              </div>
-
-              <button type="submit" class="btn btn-primary btn-lg w-100">
-                <i class="fas fa-magnifying-glass me-2"></i>
-                Generate Report
-              </button>
-            </form>
-
-            <!-- Where we’ll inject the non-followers list -->
-            <div id="results" class="mt-4"></div>
-
-            <div class="instructions mt-4">
-              <h5><i class="fas fa-info-circle me-2"></i>How to Get Your Instagram Data</h5>
-              <ol class="mt-2 mb-0">
-                <li>Open Instagram app and go to <strong>Settings &gt; Privacy and Security</strong>.</li>
-                <li>Select <strong>Download Data</strong> and enter your email.</li>
-                <li>Once you receive the email, download &amp; unzip your data.</li>
-                <li>Upload <code>followers.json</code> and <code>following.json</code> above.</li>
-              </ol>
-            </div>
-
-            <div class="developer-footer">
-              <p class="mb-1">Developed by Prabin Bhandari</p>
-              <a href="https://prabinb.com.np/?i=1" target="_blank" class="text-decoration-none">
-                Visit My Portfolio <i class="fas fa-external-link-alt"></i>
-              </a>
-              <p class="version-label">Version V2.1.2</p>
-            </div>
-          </div>
+    <div class="loading-overlay" id="loading">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p>Analyzing your Instagram connections...</p>
         </div>
-      </div>
     </div>
-  </div>
-  <script>
-    const overlay = document.getElementById('loadingOverlay');
-    const form = document.getElementById('uploadForm');
 
-    async function showAlert(message, isError = true) {
-      const alert = document.createElement('div');
-      alert.className = `alert ${isError ? 'alert-danger' : 'alert-success'} mt-3`;
-      alert.innerHTML = `
-        <i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'} me-2"></i>
-        ${message}
-      `;
-      const results = document.getElementById('results');
-      results.prepend(alert);
-      setTimeout(() => alert.remove(), 5000);
-    }
+    <header class="ig-header">
+        <div class="container">
+            <h1>
+                <i class="fab fa-instagram"></i>
+                Instagram Unfollower Checker
+                <span class="badge bg-light text-dark">v3.0.0</span>
+            </h1>
+            <p class="lead">Discover who isn't following you back</p>
+        </div>
+    </header>
 
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      overlay.classList.add('active');
-      
-      try {
-        // Client-side validation
-        const files = {
-          following: document.getElementById('following').files[0],
-          followers: document.getElementById('followers').files[0]
-        };
-        
-        if (!files.following || !files.followers) {
-          showAlert('Please select both JSON files');
-          return;
-        }
-
-        if ([files.following.size, files.followers.size].some(s => s > 2 * 1024 * 1024)) {
-          showAlert('File size exceeds 2MB limit');
-          return;
-        }
-
-        // Process files
-        const formData = new FormData(form);
-        
-        // Get JSON results
-        const jsonResponse = await fetch('/analyze/json', {
-          method: 'POST',
-          body: formData
-        });
-        
-        if (!jsonResponse.ok) {
-          const error = await jsonResponse.json();
-          throw new Error(error.error);
-        }
-
-        const { non_followers } = await jsonResponse.json();
-        
-        // Display results
-        const results = document.getElementById('results');
-        if (non_followers.length === 0) {
-          results.innerHTML = `
-            <div class="alert alert-success">
-              All your follows are mutual! 🤝
-            </div>
-          `;
-        } else {
-          results.innerHTML = `
-            <h5 class="mb-3">${non_followers.length} Non-Followers Found</h5>
-            <div class="list-group">
-              ${non_followers.map(user => `
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                  @${user.username}
-                  <span class="badge bg-secondary">#${user.id}</span>
+    <main class="container main-content">
+        <div class="upload-card">
+            <h2><i class="fas fa-cloud-upload-alt"></i> Upload Your Data</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="file-upload">
+                    <label for="following">
+                        <i class="fas fa-user-plus"></i>
+                        Following Data (JSON/HTML)
+                    </label>
+                    <input type="file" id="following" name="following" required>
                 </div>
-              `).join('')}
+                
+                <div class="file-upload">
+                    <label for="followers">
+                        <i class="fas fa-users"></i>
+                        Followers Data (JSON/HTML)
+                    </label>
+                    <input type="file" id="followers" name="followers" required>
+                </div>
+
+                <button type="submit" class="btn-analyze">
+                    <i class="fas fa-search"></i>
+                    Analyze Connections
+                </button>
+            </form>
+        </div>
+
+        <div id="results" class="results-container"></div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Developed by Prabin Bhandari • 
+                <a href="https://github.com/prabinbessie/instagram-unfollower-checker" target="_blank">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
+            </p>
+            <div class="disclaimer">
+              <B>We doesnt store your data in anyway</B>
+              <br>
+                <small>Not affiliated with Instagram. </small>
             </div>
-          `;
-        }
+        </div>
+    </footer>
 
-        // Auto-download PDF
-        const pdfResponse = await fetch('/analyze/pdf', {
-          method: 'POST',
-          body: formData
-        });
+    <script>
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const loading = document.getElementById('loading');
         
-        if (pdfResponse.ok) {
-          const blob = await pdfResponse.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `unfollowers_${Date.now()}.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        }
+        try {
+            loading.style.display = 'flex';
+            
+            // Process~analysis
+            const analysis = await fetch('/analyze/json', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!analysis.ok) throw await analysis.json();
+            const {count, results} = await analysis.json();
 
-      } catch (err) {
-        showAlert(err.message.includes('413') 
-          ? 'File too large (max 2MB)' 
-          : err.message);
-      } finally {
-        overlay.classList.remove('active');
-      }
+            // Display results n link 
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = results.length ? `
+                <div class="results-card">
+                    <h3><i class="fas fa-users-slash"></i> ${count} Non-Followers Found</h3>
+                    <div class="user-list">
+                        ${results.map(user => `
+                            <div class="user-item">
+                                <a href="${user.profile_url}" target="_blank" class="username">
+                                    @${user.username}
+                                </a>
+                                <span class="badge">#${user.id}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn-download-pdf" onclick="generatePDF()">
+                        <i class="fas fa-file-pdf"></i> Download PDF Report
+                    </button>
+                </div>
+            ` : `<div class="alert-success">All follows are mutual! 🎉</div>`;
+
+            // Autodownload the PDF
+            const pdfResponse = await fetch('/analyze/pdf', {
+                method: 'POST',
+                body: formData
+            });
+            const pdfBlob = await pdfResponse.blob();
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            const link = document.createElement('a');
+            link.href = pdfUrl;
+            link.download = `instagram_non_followers_${Date.now()}.pdf`;
+            link.click();
+
+        } catch (error) {
+            showError(error.message || 'An error occurred');
+        } finally {
+            loading.style.display = 'none';
+        }
     });
-  </script>
+
+    function showError(message) {
+        const alert = document.createElement('div');
+        alert.className = 'alert-error';
+        alert.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            ${message}
+        `;
+        document.getElementById('results').prepend(alert);
+        setTimeout(() => alert.remove(), 5000);
+    }
+    </script>
 </body>
 </html>

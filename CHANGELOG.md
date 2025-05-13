@@ -1,43 +1,36 @@
-## [2.1.2] – 2025-05-03
+## [3.0.0] – 2024-03-20
 
-## 🛠 Recent Improvements (v2.1.2)
+### Added
+- **HTML + JSON Support**  
+  - Automatic detection of Instagram export format (`.html` vs. `.json`) in `InstagramAnalyzer.detect_file_type()`  
+  - New `parse_html()` method leveraging BeautifulSoup to extract usernames from HTML export files  
+- **PDF Report Enhancements**  
+  - Hyperlinked “Profile Link” column in generated PDF, pointing directly to `https://www.instagram.com/{username}`  
+- **UI & UX Improvements**  
+  - Instagram-inspired gradient header and dashed drop-zone file-upload box  
+  - Interactive username links with hover animation for web results  
 
+### Changed
+- **Core Refactoring**  
+  - Consolidated extraction logic in `InstagramAnalyzer`: `extract_users()`, `_extract_json_users()`, and new file-type dispatch  
+  - New `validate_files()` method with explicit checks for required uploads, empty files, and permitted extensions  
+- **Dependency Bumps**  
+  - Flask → **3.0.2**  
+  - beautifulsoup4 → **4.12.3**  
+  - reportlab → **4.1.0**  
+  - python-dotenv → **1.0.0**  
+- **Backward Compatibility**  
+  - Legacy JSON workflows remain unchanged—existing users upgrading to v3 see zero disruption  
 
-#### Error Handling
-- Added robust client-side validation for JSON file uploads  
-- Standardized API error responses across `/analyze/json` and `/analyze/pdf` endpoints  
-- Fixed 413 error handling for files exceeding 2 MB limit  
+### Documentation
+- **README.md**  
+  - Added “How to Get HTML Files” section with step-by-step instructions for downloading and locating Instagram’s HTML exports  
+  - Detailed “Version 3 Features” overview  
+- **CHANGELOG.md**  
+  - Introduced this v3 entry  
+- **LICENSE**  
+  - Added standard MIT License file
 
-#### Data Processing
-- Implemented idempotent file processing for Instagram's JSON structure variations  
-- Added graceful handling of malformed/missing `string_list_data` fields  git status
+---
 
-- Resolved edge case where identical follower/following lists returned false positives  
-
-#### Performance
-- Reduced memory footprint during PDF generation by 40%  
-- Optimized username extraction algorithm (O(n) → O(1) for valid entries)  
-
-### Frontend Improvements
-
-### UX Improvements
-- Animated SVG loaders with progress states
-- Toast notification system for errors
-- Client-side file validation (type/size) 
-
-#### Validation
-- Client-side file size checks (2 MB limit enforced pre-upload)  
-- MIME-type verification for JSON files  
-- Real-time validation feedback for form inputs  
-
-#### PDF Handling
-- Added fail-safe PDF download mechanism  
-- Implemented proper resource cleanup for memory blobs  
-- Enhanced PDF table formatting for better readability  
-
-### Testing & Reliability
-
-### Testing Infrastructure
-- Added 12+ pytest cases covering edge scenarios
-- Implemented destructive input testing
-- Added CI pipeline template (GitHub Actions)
+*Enjoy seamless HTML/JSON handling, sharper visuals, and richer reports!*  

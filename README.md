@@ -30,15 +30,17 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 
 ---
 
-## 🛠 Recent Improvements (v2.1.2)
+## 🛠 Recent Improvements (v3.0.0)
 
 ### Core Enhancements
-- Added Instagram's 2024 JSON format support
-- Implemented hybrid format detection algorithm
-- Reduced PDF memory footprint by 40%
-- Added sample JSON files for testing and demo purposes (`sample_json/`)
+## Features
+- Supports both JSON and HTML Instagram data files
+- Automatic file type detection
+- PDF report generation
+- Direct profile links
+- Modern UI with Instagram-style design
 
-
+## Previous Verision (v2.1.1)
 ### Testing Infrastructure
 - Added 12+ edge case test scenarios
 - Implemented destructive input testing
@@ -87,12 +89,12 @@ To use this tool, you’ll need to manually download your Instagram data. Here�
 
 1. **Go to Instagram → Settings → Your Information and Permisson → Download your information**
 2. Select **"Following and Followers"** (or "Connections")
-3. Choose **JSON** as the format
+3. Choose **JSON** or **HTML**(fromV3) as the format
 4. Submit your request and wait for an email
 5. Download the ZIP file from the link in the email
-6. Extract it, and upload :
-   - `followers.json`
-   - `following.json`
+6. Extract it, and upload on our hosted:
+   - `followers_1.json` or `followers.html`
+   - `following.json` or `following.html`
 
 ![Instagram Data Download Screenshot](static/img/instagram_data_download.jpg)
 
@@ -156,5 +158,5 @@ Distributed under MIT License. See LICENSE for full text.
 
 **Prabin Bhandari**
 - 📧 bhandariprabin84@gmail.com
--  Instagram @prabinbhandariii
+-  Instagram @prabinbhandarii
 -  Twitter @prabinbessie
