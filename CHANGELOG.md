@@ -21,6 +21,30 @@
   - python-dotenv → **1.0.0**  
 - **Backward Compatibility**  
   - Legacy JSON workflows remain unchanged—existing users upgrading to v3 see zero disruption  
+  Changelog Summary
+Form Handling
+Added form reset post-submission
+Removed auto PDF download; added manual trigger
+Improved error handling and user feedback
+File Validation
+Client- and server-side file type/size validation
+Enhanced JSON structure detection and error messages
+PDF Generation
+Moved to a separate endpoint
+Triggered via button; independent of initial analysis
+Preserves form state for consistent output
+UI Enhancements
+Custom file upload buttons and better visual hierarchy
+Collapsible data guide and improved footer styling
+Clearer feedback and form reset behavior
+Security
+Strict file type checks and size enforcement
+Session-free architecture
+Extended error logging and multi-level validation
+Testing Coverage
+Validates file types and sizes
+Ensures proper handling of mutual follows and swaps
+Verifies stable PDF generation and UI reset
 
 ### Documentation
 - **README.md**  

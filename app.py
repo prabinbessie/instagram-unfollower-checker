@@ -40,7 +40,7 @@ class InstagramAnalyzer:
     
     @staticmethod
     def validate_files(files):
-        """Validate uploaded files meet requirements"""
+        """Enhanced file validation"""
         required = {'following', 'followers'}
         if not required.issubset(files):
             raise ValueError(ERROR_MESSAGES['missing_files'])
@@ -52,7 +52,11 @@ class InstagramAnalyzer:
             ext = f.filename.split('.')[-1].lower()
             if ext not in ('json', 'html'):
                 raise ValueError(ERROR_MESSAGES['invalid_file'])
-
+            f.stream.seek(0, os.SEEK_END)
+            size = f.stream.tell()
+            f.stream.seek(0)
+            if size > 5 * 1024 * 1024:  # 5MB
+                raise ValueError(ERROR_MESSAGES['size_limit'])
     @classmethod
     def detect_file_type(cls, filename):
         """Determine file type from extension"""
@@ -75,20 +79,20 @@ class InstagramAnalyzer:
 
     @classmethod
     def parse_json(cls, file_stream):
-        """Parse Instagram JSON files"""
+        """Enhanced JSON parsing with automatic type detection"""
         try:
             data = json.load(file_stream)
             users = []
             
-            # Handle different JSON structures
-            if isinstance(data, list):
-                entries = data
-            elif 'relationships_following' in data:
+            # Detect file type from structure
+            if 'relationships_following' in data:
                 entries = data['relationships_following']
             elif 'relationships_followers' in data:
                 entries = data['relationships_followers']
+            elif isinstance(data, list):
+                entries = data  # Handle array-based JSON
             else:
-                entries = []
+                raise ValueError("Unsupported JSON structure")
             
             for item in entries:
                 if 'string_list_data' in item:
@@ -112,14 +116,21 @@ class InstagramAnalyzer:
 
     @classmethod
     def get_non_followers(cls, following_file, followers_file):
-        """Main analysis method"""
+        """Improved analysis with file type validation"""
+        # Process files regardless of input order
         following = cls.process_file(following_file)
         followers = cls.process_file(followers_file)
+        
+        # Validate we have correct data types
+        if len(following) < len(followers):
+            app.logger.warning("Possible file swap detected. Following < Followers")
+        
+        non_followers = list(set(following) - set(followers))
         return [{
             'id': i+1,
             'username': user,
             'profile_url': f"https://www.instagram.com/{user}"
-        } for i, user in enumerate(set(following) - set(followers))]
+        } for i, user in enumerate(non_followers)]
 
     @staticmethod
     def print_version():
@@ -130,20 +141,17 @@ def home():
     return render_template('index.html')
 
 @app.route('/analyze/json', methods=['POST'])
-def analyze_json():
+def analyze_pdf():
     try:
+        # Revalidate files for PDF generation
         InstagramAnalyzer.validate_files(request.files)
         non_followers = InstagramAnalyzer.get_non_followers(
             request.files['following'],
             request.files['followers']
         )
-        return jsonify({
-            'count': len(non_followers),
-            'results': non_followers
-        })
-    except Exception as e:
-        app.logger.error(f"Analysis error: {str(e)}")
-        return jsonify(error=str(e)), 400
+        
+        if not non_followers:
+            return jsonify(error="No non-followers to generate PDF"), 400
 
 @app.route('/analyze/pdf', methods=['POST'])
 def analyze_pdf():

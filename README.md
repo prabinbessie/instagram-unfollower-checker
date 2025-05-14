@@ -1,4 +1,4 @@
-**Version**: v2.1.2
+**Version**: v3.1.1
 # 📉 Instagram Unfollower Detective
 
 [![Version](https://img.shields.io/badge/version-2.1.2-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
@@ -15,7 +15,7 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 ## 🚀 Key Features
 
 ### Dual Format Support
-- ✅ Handles both legacy and modern Instagram JSON formats
+- ✅ Handles both legacy and modern Instagram JSON /Htmlformats
 - 📦 Processes nested (`relationships_followers`) and flat structures
 - 🧩 Automatic format detection with fallback mechanisms
 
@@ -27,24 +27,53 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 - 📄 PDF with clickable profile links
 - 📱 Mobile-optimized HTML results
 - 📋 CSV export (beta - v2.2 preview)
+### Enhanced UX & Feedback
+- custom file upload UI with live validation feedback
+- Form reset support with preserved analysis state
+- Toggleable data guide for new users
+
 
 ---
 
 ## 🛠 Recent Improvements (v3.0.0)
-
-### Core Enhancements
 ## Features
+
 - Supports both JSON and HTML Instagram data files
 - Automatic file type detection
 - PDF report generation
 - Direct profile links
 - Modern UI with Instagram-style design
 
+### Form Handling
+- Added form reset post-submission
+- Removed auto PDF download; added manual trigger
+- Improved error handling and user feedback
+
+### File Validation
+- Client- and server-side file type/size validation
+- Enhanced JSON structure detection and error messages
+
+### PDF Generation
+- Moved to a separate endpoint
+- Triggered via button; independent of initial analysis
+- Preserves form state for consistent output
+
+### UI Enhancements
+- Custom file upload buttons and better visual hierarchy
+- Collapsible data guide and improved footer styling
+- Clearer feedback and form reset behavior
+
+### Security
+- Strict file type checks and size enforcement
+- Session-free architecture
+- Extended error logging and multi-level validation
+
+### Testing Coverage
+- Validates file types and sizes
+- Ensures proper handling of mutual follows and swaps
+- Verifies stable PDF generation and UI reset
+
 ## Previous Verision (v2.1.1)
-### Testing Infrastructure
-- Added 12+ edge case test scenarios
-- Implemented destructive input testing
-- GitHub Actions CI pipeline template
 
 ### User Experience
 -  Animated SVG loaders with progress states
@@ -111,9 +140,6 @@ Once the files are uploaded, the tool processes them and shows:
 
 ![Sample Output Screenshot](static/img/sample_results.png)
 
-### Immediate PDF download
-- CSV export (In V3 )
-- Shareable link (24h retention (in V3))
 ##  Technical Architecture
 
 ```plaintext
@@ -142,9 +168,9 @@ instagram-unfollower-checker/
 - Clone your fork locally
 - Create feature branch:
 `git checkout -b feat/your-feature`
--Implement changes with:
--Type hints for new code
--PEP-8 compliance
+- Implement changes with:
+- Type hints for new code
+- PEP-8 compliance
 - 90%+ test coverage
 - Update CHANGELOG.md
 - Push changes:
