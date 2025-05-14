@@ -282,10 +282,17 @@ body {
                 showError(error.message || 'An error occurred');
             } finally {
                 loading.style.display = 'none';
+<<<<<<< HEAD
                 e.target.reset(); 
             }
         });
        
+=======
+                e.target.reset(); // Reset form after submission
+            }
+        });
+        // New PDF generation handler
+>>>>>>> c0b09642d301e5a76e89173f7086208e968d0607
         async function generatePDF(e) {
         try {
             const formData = new FormData(document.getElementById('uploadForm'));
