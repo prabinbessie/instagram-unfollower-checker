@@ -93,7 +93,63 @@ body {
     align-items: center;
     z-index: 1000;
 }
+ /* Add updated file input validation style */
+ input[type="file"] {
+            display: none;
+        }
+        .custom-file-upload {
+            border: 2px solid #E1306C;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+/* Add updated styles */
+.developer-section {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-top: 3rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+        }
 
+        .guide-toggle {
+            color: var(--ig-pink);
+            cursor: pointer;
+            margin: 1rem 0;
+        }
+
+        .data-guide {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .footer {
+            margin-top: 3rem;
+            padding: 2rem 0;
+            text-align: center;
+            background: #fff;
+        }
+
+        .badge-version {
+            font-size: 0.8em;
+            vertical-align: super;
+        }
+
+        /* Update button styles */
+        .btn-download-pdf {
+            background: var(--ig-purple);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            transition: transform 0.2s ease;
+        }
 /* Complete CSS available in GitHub repo */
 </style>
   </head>
@@ -124,16 +180,28 @@ body {
                     <label for="following">
                         <i class="fas fa-user-plus"></i>
                         Following Data (JSON/HTML)
+                        <br>
+                        <span class="custom-file-upload">
+                            Choose File
+                        </span>
+                        <span id="followingFileName"></span>
                     </label>
-                    <input type="file" id="following" name="following" required>
+                    <input type="file" id="following" name="following" 
+                           accept=".json,.html" required>
                 </div>
                 
                 <div class="file-upload">
                     <label for="followers">
                         <i class="fas fa-users"></i>
                         Followers Data (JSON/HTML)
+                        <br>
+                        <span class="custom-file-upload">
+                            Choose File
+                        </span>
+                        <span id="followersFileName"></span>
                     </label>
-                    <input type="file" id="followers" name="followers" required>
+                    <input type="file" id="followers" name="followers" 
+                           accept=".json,.html" required>
                 </div>
 
                 <button type="submit" class="btn-analyze">
@@ -148,77 +216,116 @@ body {
 
     <footer class="footer">
         <div class="container">
-            <p>Developed by Prabin Bhandari • 
-                <a href="https://github.com/prabinbessie/instagram-unfollower-checker" target="_blank">
+            <div class="developer-section">
+                <h4>Developed with ❤️ by Prabin Bhandari</h4>
+                <div class="guide-toggle" onclick="toggleGuide()">
+                    <i class="fas fa-question-circle"></i> How to get Instagram data?
+                </div>
+                <div class="data-guide" id="dataGuide">
+                    <ol class="text-start">
+                        <li>Go to your Instagram profile</li>
+                        <li>Navigate to Settings → Privacy → Data download</li>
+                        <li>Request download for "Followers and Following"</li>
+                        <li>Upload the received files here</li>
+                    </ol>
+                </div>
+                <a href="https://github.com/prabinbessie/instagram-unfollower-checker" 
+                   target="_blank" 
+                   class="btn btn-outline-dark mt-2">
                     <i class="fab fa-github"></i> View on GitHub
                 </a>
-            </p>
-            <div class="disclaimer">
-              <B>We doesnt store your data in anyway</B>
-              <br>
-                <small>Not affiliated with Instagram. </small>
+            </div>
+            <div class="disclaimer mt-3">
+                <small class="text-muted">Not affiliated with Instagram. We don't store your data.</small>
             </div>
         </div>
     </footer>
 
     <script>
-    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const loading = document.getElementById('loading');
-        
-        try {
-            loading.style.display = 'flex';
+     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const loading = document.getElementById('loading');
             
-            // Process~analysis
-            const analysis = await fetch('/analyze/json', {
+            try {
+                loading.style.display = 'flex';
+                
+                const analysis = await fetch('/analyze/json', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!analysis.ok) throw await analysis.json();
+                const {count, results} = await analysis.json();
+
+                const resultsContainer = document.getElementById('results');
+                resultsContainer.innerHTML = results.length ? `
+                    <div class="results-card">
+                        <h3><i class="fas fa-users-slash"></i> ${count} Non-Followers Found</h3>
+                        <div class="user-list">
+                            ${results.map(user => `
+                                <div class="user-item">
+                                    <a href="${user.profile_url}" target="_blank" class="username">
+                                        @${user.username}
+                                    </a>
+                                    <span class="badge">#${user.id}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn-download-pdf" onclick="generatePDF(event)">
+                            <i class="fas fa-file-pdf"></i> Download PDF Report
+                        </button>
+                    </div>
+                ` : `<div class="alert-success">All follows are mutual! 🎉</div>`;
+
+            } catch (error) {
+                showError(error.message || 'An error occurred');
+            } finally {
+                loading.style.display = 'none';
+                e.target.reset(); // Reset form after submission
+            }
+        });
+        // New PDF generation handler
+        async function generatePDF(e) {
+        try {
+            const formData = new FormData(document.getElementById('uploadForm'));
+            const loading = document.getElementById('loading');
+            
+            // Get fresh data for PDF
+            loading.style.display = 'flex';
+            const analysis = await fetch('/analyze/pdf', {
                 method: 'POST',
                 body: formData
             });
             
             if (!analysis.ok) throw await analysis.json();
-            const {count, results} = await analysis.json();
-
-            // Display results n link 
-            const resultsContainer = document.getElementById('results');
-            resultsContainer.innerHTML = results.length ? `
-                <div class="results-card">
-                    <h3><i class="fas fa-users-slash"></i> ${count} Non-Followers Found</h3>
-                    <div class="user-list">
-                        ${results.map(user => `
-                            <div class="user-item">
-                                <a href="${user.profile_url}" target="_blank" class="username">
-                                    @${user.username}
-                                </a>
-                                <span class="badge">#${user.id}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button class="btn-download-pdf" onclick="generatePDF()">
-                        <i class="fas fa-file-pdf"></i> Download PDF Report
-                    </button>
-                </div>
-            ` : `<div class="alert-success">All follows are mutual! 🎉</div>`;
-
-            // Autodownload the PDF
-            const pdfResponse = await fetch('/analyze/pdf', {
-                method: 'POST',
-                body: formData
-            });
-            const pdfBlob = await pdfResponse.blob();
+            
+            const pdfBlob = await analysis.blob();
             const pdfUrl = URL.createObjectURL(pdfBlob);
             const link = document.createElement('a');
             link.href = pdfUrl;
             link.download = `instagram_non_followers_${Date.now()}.pdf`;
+            document.body.appendChild(link);
             link.click();
-
+            document.body.removeChild(link);
         } catch (error) {
-            showError(error.message || 'An error occurred');
+            showError(error.message || 'PDF generation failed');
         } finally {
             loading.style.display = 'none';
         }
+    }
+        function toggleGuide() {
+            const guide = document.getElementById('dataGuide');
+            guide.style.display = guide.style.display === 'none' ? 'block' : 'none';
+        }
+        // Add file name display
+    document.getElementById('following').addEventListener('change', function(e) {
+        document.getElementById('followingFileName').textContent = e.target.files[0].name;
     });
-
+    
+    document.getElementById('followers').addEventListener('change', function(e) {
+        document.getElementById('followersFileName').textContent = e.target.files[0].name;
+    });
     function showError(message) {
         const alert = document.createElement('div');
         alert.className = 'alert-error';
