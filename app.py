@@ -21,7 +21,7 @@ app.config.update(
     JSON_AS_ASCII=False
 )
 
-
+# Configure logging
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 app.logger = logging.getLogger('InstagramUnfollowerChecker')
 
@@ -57,6 +57,7 @@ class InstagramAnalyzer:
             f.stream.seek(0)
             if size > 5 * 1024 * 1024:  # 5MB
                 raise ValueError(ERROR_MESSAGES['size_limit'])
+
     @classmethod
     def detect_file_type(cls, filename):
         """Determine file type from extension"""
@@ -79,18 +80,18 @@ class InstagramAnalyzer:
 
     @classmethod
     def parse_json(cls, file_stream):
-        """Enhanced JSON parsing with automatic type detection"""
+        """Improved JSON parsing with structure detection"""
         try:
             data = json.load(file_stream)
             users = []
             
-            # Detect file type from structure
-            if 'relationships_following' in data:
-                entries = data['relationships_following']
+            # Detect file type
+            if isinstance(data, list):
+                entries = data  # followers_1.json format
+            elif 'relationships_following' in data:
+                entries = data['relationships_following']  # following.json
             elif 'relationships_followers' in data:
-                entries = data['relationships_followers']
-            elif isinstance(data, list):
-                entries = data  # Handle array-based JSON
+                entries = data['relationships_followers']  # followers.json
             else:
                 raise ValueError("Unsupported JSON structure")
             
@@ -116,42 +117,34 @@ class InstagramAnalyzer:
 
     @classmethod
     def get_non_followers(cls, following_file, followers_file):
-        """Improved analysis with file type validation"""
-        # Process files regardless of input order
+        """Main analysis method"""
         following = cls.process_file(following_file)
         followers = cls.process_file(followers_file)
-        
-        # Validate we have correct data types
-        if len(following) < len(followers):
-            app.logger.warning("Possible file swap detected. Following < Followers")
-        
-        non_followers = list(set(following) - set(followers))
         return [{
             'id': i+1,
             'username': user,
             'profile_url': f"https://www.instagram.com/{user}"
-        } for i, user in enumerate(non_followers)]
-
-    @staticmethod
-    def print_version():
-        print(f"instagram-unfollow-checker v{__version__}")
+        } for i, user in enumerate(set(following) - set(followers))]
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
 @app.route('/analyze/json', methods=['POST'])
-def analyze_pdf():
+def analyze_json():
     try:
-        # Revalidate files for PDF generation
         InstagramAnalyzer.validate_files(request.files)
         non_followers = InstagramAnalyzer.get_non_followers(
             request.files['following'],
             request.files['followers']
         )
-        
-        if not non_followers:
-            return jsonify(error="No non-followers to generate PDF"), 400
+        return jsonify({
+            'count': len(non_followers),
+            'results': non_followers
+        })
+    except Exception as e:
+        app.logger.error(f"Analysis error: {str(e)}")
+        return jsonify(error=str(e)), 400
 
 @app.route('/analyze/pdf', methods=['POST'])
 def analyze_pdf():
@@ -161,6 +154,9 @@ def analyze_pdf():
             request.files['following'],
             request.files['followers']
         )
+
+        if not non_followers:
+            return jsonify(error="No non-followers to generate PDF"), 400
 
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -180,19 +176,15 @@ def analyze_pdf():
         elements.append(Spacer(1, 24))
 
         # Table data
-        if non_followers:
-            data = [["#", "Username", "Profile Link"]]
-            for user in non_followers:
-                data.append([
-                    str(user['id']),
-                    user['username'],
-                    Paragraph(f"<a href='{user['profile_url']}'>{user['profile_url']}</a>", 
-                            styles['ProfileLink'])
-                ])
-            col_widths = [40, 120, 340]
-        else:
-            data = [["All your follows are mutual! 🎉"]]
-            col_widths = [500]
+        data = [["#", "Username", "Profile Link"]]
+        for user in non_followers:
+            data.append([
+                str(user['id']),
+                user['username'],
+                Paragraph(f"<a href='{user['profile_url']}'>{user['profile_url']}</a>", 
+                        styles['ProfileLink'])
+            ])
+        col_widths = [40, 120, 340]
 
         # Table styling
         table = Table(data, colWidths=col_widths)
