@@ -282,10 +282,10 @@ body {
                 showError(error.message || 'An error occurred');
             } finally {
                 loading.style.display = 'none';
-                e.target.reset(); // Reset form after submission
+                e.target.reset(); 
             }
         });
-        // New PDF generation handler
+       
         async function generatePDF(e) {
         try {
             const formData = new FormData(document.getElementById('uploadForm'));

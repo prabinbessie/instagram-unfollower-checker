@@ -1,5 +1,5 @@
 """
-Instagram Unfollower Analyzer v3
+Instagram Unfollower Analyzer v3.0.1
 """
 import os
 import json
@@ -21,7 +21,7 @@ app.config.update(
     JSON_AS_ASCII=False
 )
 
-# Configure logging
+
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 app.logger = logging.getLogger('InstagramUnfollowerChecker')
 
