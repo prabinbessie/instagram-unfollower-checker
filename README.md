@@ -1,12 +1,11 @@
-**Version**: v3.1.1
 # 📉 Instagram Unfollower Detective
 
-[![Version](https://img.shields.io/badge/version-2.1.2-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
+[![Version](https://img.shields.io/badge/version-3.1.2-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-A Flask-powered tool to analyze Instagram relationships and identify non-reciprocal follows. Supports both JSON and PDF exports from Instagram.
+A Flask-powered tool to analyze Instagram relationships and identify non-reciprocal follows. Supports both JSON and HTML exports from Instagram.
 
 🔗 **Live Demo**: [instagram-unfollower-checker.onrender.com](https://instagram-unfollower-checker.onrender.com)
 
@@ -15,18 +14,18 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 ## 🚀 Key Features
 
 ### Dual Format Support
-- ✅ Handles both legacy and modern Instagram JSON /Htmlformats
-- 📦 Processes nested (`relationships_followers`) and flat structures
-- 🧩 Automatic format detection with fallback mechanisms
+- Handles both legacy and modern Instagram Format JSON /Htmlformats (.zip Soon)
+- Processes nested (`relationships_followers`) and flat structures
+- Automatic format detection with fallback mechanisms
 
 ### Performance & Security
 -  O(1) lookup performance for datasets >100k entries
 -  C40% memory reduction in PDF generation
 
 ### Multi-Format Reporting
-- 📄 PDF with clickable profile links
+- 📄 Download PDF with clickable profile links
 - 📱 Mobile-optimized HTML results
-- 📋 CSV export (beta - v2.2 preview)
+- 📋 CSV export (preview)
 ### Enhanced UX & Feedback
 - custom file upload UI with live validation feedback
 - Form reset support with preserved analysis state
@@ -35,9 +34,22 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 
 ---
 
-## 🛠 Recent Improvements (v3.0.0)
-## Features
+## 🛠 Recent Improvements (v3.1.2)
+### Added
+- New validation for duplicate file uploads
+- Enhanced file type auto-detection logic
+- Additional security headers for PDF downloads
 
+### Improved
+- File structure detection accuracy for JSON files
+- Error messages for common upload mistakes
+- PDF generation reliability across browsers
+
+### Fixed
+- File swap detection for ambiguous filenames
+- Content-Disposition header handling for downloads
+- Memory cleanup after file processing
+## Features From V3
 - Supports both JSON and HTML Instagram data files
 - Automatic file type detection
 - PDF report generation
@@ -67,18 +79,6 @@ A Flask-powered tool to analyze Instagram relationships and identify non-recipro
 - Strict file type checks and size enforcement
 - Session-free architecture
 - Extended error logging and multi-level validation
-
-### Testing Coverage
-- Validates file types and sizes
-- Ensures proper handling of mutual follows and swaps
-- Verifies stable PDF generation and UI reset
-
-## Previous Verision (v2.1.1)
-
-### User Experience
--  Animated SVG loaders with progress states
-- Toast notification system for errors
-- Client-side file validation (type/size)
 
 ---
 
@@ -133,10 +133,10 @@ To use this tool, you’ll need to manually download your Instagram data. Here�
 
 Once the files are uploaded, the tool processes them and shows:
 
-- 🔗 Clickable Instagram profile links
-- ❌ People you follow who don’t follow you back
-- 📄 Downloadable PDF report
-- 📊 Visual summary (CSV export coming soon)
+-  Clickable Instagram profile links
+-  People you follow who don’t follow you back
+-  Downloadable PDF report
+- Visual summary (CSV export coming soon)
 
 ![Sample Output Screenshot](static/img/sample_results.png)
 
@@ -150,10 +150,12 @@ instagram-unfollower-checker/
 ├── sample_json/           
 │   ├── followers.json
 │   └── following.json
+├── tests/
 ├── .gitignore
 ├── CHANGELOG.md
 ├── Procfile
 ├── README.md
+├── LICENSE
 ├── app.py
 ├── requirements.txt
 └── version.py

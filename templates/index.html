@@ -166,7 +166,7 @@ body {
             <h1>
                 <i class="fab fa-instagram"></i>
                 Instagram Unfollower Checker
-                <span class="badge bg-light text-dark">v3.0.0</span>
+                <span class="badge bg-light text-dark">v3.1.2 </span>
             </h1>
             <p class="lead">Discover who isn't following you back</p>
         </div>
@@ -219,13 +219,15 @@ body {
             <div class="developer-section">
                 <h4>Developed with ❤️ by Prabin Bhandari</h4>
                 <div class="guide-toggle" onclick="toggleGuide()">
-                    <i class="fas fa-question-circle"></i> How to get Instagram data?
+                    <i class="fas fa-question-circle"></i> How to get Instagram data? Click👈
                 </div>
                 <div class="data-guide" id="dataGuide">
                     <ol class="text-start">
                         <li>Go to your Instagram profile</li>
-                        <li>Navigate to Settings → Privacy → Data download</li>
-                        <li>Request download for "Followers and Following"</li>
+                        <li>Navigate to Settings → <b>Your Information & permissions</b>→ <b> Your Information</b></li>
+                        <li>Tap on "<b>Download or transfer information</b>" choose your Instagram profile, and press "Next."</li>
+                        <li> Now, select "<b>Some of your information</b>". Scroll to "<b>Connections</b>" section</li>
+                        <li>Choose only "<b>Followers and Following </b>" and press "Next. with any format HTML/JSON</li>
                         <li>Upload the received files here</li>
                     </ol>
                 </div>
@@ -260,23 +262,23 @@ body {
 
                 const resultsContainer = document.getElementById('results');
                 resultsContainer.innerHTML = results.length ? `
-                    <div class="results-card">
-                        <h3><i class="fas fa-users-slash"></i> ${count} Non-Followers Found</h3>
-                        <div class="user-list">
-                            ${results.map(user => `
-                                <div class="user-item">
-                                    <a href="${user.profile_url}" target="_blank" class="username">
-                                        @${user.username}
-                                    </a>
-                                    <span class="badge">#${user.id}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <button class="btn-download-pdf" onclick="generatePDF(event)">
-                            <i class="fas fa-file-pdf"></i> Download PDF Report
-                        </button>
-                    </div>
-                ` : `<div class="alert-success">All follows are mutual! 🎉</div>`;
+                     <div class="results-card">
+        <h3><i class="fas fa-users-slash"></i> ${count} Non-Followers Found</h3>
+        <button class="btn-download-pdf mb-4" onclick="generatePDF(event)">
+            <i class="fas fa-file-pdf"></i> Download PDF Report
+        </button>
+        <div class="user-list">
+            ${results.map(user => `
+                <div class="user-item">
+                    <a href="${user.profile_url}" target="_blank" class="username">
+                        @${user.username}
+                    </a>
+                    <span class="badge">#${user.id}</span>
+                </div>
+            `).join('')}
+        </div>
+    </div>
+` : `<div class="alert-success">All follows are mutual! 🎉</div>`;
 
             } catch (error) {
                 showError(error.message || 'An error occurred');

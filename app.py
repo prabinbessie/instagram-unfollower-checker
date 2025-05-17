@@ -30,7 +30,8 @@ ERROR_MESSAGES = {
     'invalid_file': "Invalid file format. We support JSON and HTML files from Instagram",
     'empty_file': "Uploaded file appears to be empty",
     'processing_error': "Error processing your request",
-    'size_limit': "File size exceeds 5MB limit"
+    'size_limit': "File size exceeds 5MB limit",
+    'same_files': "You uploaded the same file for both following and followers"
 }
 
 class InstagramAnalyzer:
@@ -44,6 +45,8 @@ class InstagramAnalyzer:
         required = {'following', 'followers'}
         if not required.issubset(files):
             raise ValueError(ERROR_MESSAGES['missing_files'])
+        if files['following'].filename == files['followers'].filename:
+            raise ValueError(ERROR_MESSAGES['same_files'])
             
         for f in files.values():
             if not f or f.filename == '':
@@ -57,7 +60,38 @@ class InstagramAnalyzer:
             f.stream.seek(0)
             if size > 5 * 1024 * 1024:  # 5MB
                 raise ValueError(ERROR_MESSAGES['size_limit'])
+    @classmethod
+    def _auto_detect_files(cls, following_file, followers_file):
+        """Enhanced file detection with multiple strategies"""
+        names = {
+            'following': following_file.filename.lower(),
+            'followers': followers_file.filename.lower()
+        }
+        
 
+        scores = {
+            'following': names['following'].count('following') * 2,
+            'followers': names['followers'].count('followers') * 2,
+            'follower': names['followers'].count('follower'),
+            'following': names['following'].count('following')  
+        }
+
+        try:
+            def peek_file(f):
+                pos = f.stream.tell()
+                data = json.load(f.stream)
+                f.stream.seek(pos)
+                return data
+                
+            if cls.detect_file_type(following_file.filename) == 'json':
+                following_data = peek_file(following_file)
+                if 'relationships_followers' in following_data:
+                    return (followers_file, following_file)
+        except:
+            pass
+        if scores['followers'] > scores['following']:
+            return (followers_file, following_file)
+        return (following_file, followers_file)
     @classmethod
     def detect_file_type(cls, filename):
         """Determine file type from extension"""
@@ -117,9 +151,16 @@ class InstagramAnalyzer:
 
     @classmethod
     def get_non_followers(cls, following_file, followers_file):
-        """Main analysis method"""
-        following = cls.process_file(following_file)
-        followers = cls.process_file(followers_file)
+        """Smart file handling with fallback"""
+        try:
+            processed_following, processed_followers = cls._auto_detect_files(following_file, followers_file)
+        except Exception as e:
+            app.logger.warning(f"Auto-detection failed: {str(e)}")
+            processed_following, processed_followers = following_file, followers_file
+        
+        following = cls.process_file(processed_following)
+        followers = cls.process_file(processed_followers)
+        
         return [{
             'id': i+1,
             'username': user,
@@ -212,8 +253,11 @@ def analyze_pdf():
 
 @app.after_request
 def add_security_headers(response):
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
+    response.headers.update({
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+         "Access-Control-Expose-Headers": "Content-Disposition"
+    })
     return response
 
 @app.errorhandler(413)
