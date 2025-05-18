@@ -1,5 +1,5 @@
 """
-Instagram Unfollower Analyzer v3.0.1
+Instagram Unfollower Analyzer v3.1.2
 """
 import os
 import json
@@ -138,26 +138,30 @@ class InstagramAnalyzer:
 
     @classmethod
     def process_file(cls, file_storage):
-        """Process either HTML or JSON file"""
+        """Process either HTML or JSON file with stream reset"""
         file_type = cls.detect_file_type(file_storage.filename)
-        file_stream = file_storage.stream
+    
+    try:
+        file_storage.stream.seek(0)
         
         if file_type == 'html':
-            return cls.parse_html(file_stream)
+            return cls.parse_html(file_storage.stream)
         elif file_type == 'json':
-            return cls.parse_json(file_stream)
+            return cls.parse_json(file_storage.stream)
         else:
             raise ValueError(ERROR_MESSAGES['invalid_file'])
+    except Exception as e:
+        raise ValueError(f"File processing error: {str(e)}")
+    finally:
+        file_storage.stream.seek(0)
 
     @classmethod
     def get_non_followers(cls, following_file, followers_file):
         """Smart file handling with fallback"""
         try:
-            # Preserve original order as fallback
             orig_following = cls.process_file(following_file)
             orig_followers = cls.process_file(followers_file)
             
-            # Auto-detected order
             processed_following, processed_followers = cls._auto_detect_files(following_file, followers_file)
             auto_following = cls.process_file(processed_following)
             auto_followers = cls.process_file(processed_followers)
@@ -217,44 +221,13 @@ def analyze_pdf():
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
         styles = getSampleStyleSheet()
-        elements = []
+        try:
+            elements = create_pdf_elements(non_followers, styles)
+            doc.build(elements)
+        except Exception as e:
+            app.logger.error(f"PDF build error: {str(e)}")
+            raise ValueError("Failed to generate PDF document")
 
-        # Custom styles
-        styles.add(ParagraphStyle(
-            name='ProfileLink',
-            textColor=colors.HexColor('#E1306C'),
-            fontSize=10,
-            leading=14
-        ))
-
-        # Header
-        elements.append(Paragraph("Instagram Non-Followers Report", styles['Title']))
-        elements.append(Spacer(1, 24))
-
-        # Table data
-        data = [["#", "Username", "Profile Link"]]
-        for user in non_followers:
-            data.append([
-                str(user['id']),
-                user['username'],
-                Paragraph(f"<a href='{user['profile_url']}'>{user['profile_url']}</a>", 
-                        styles['ProfileLink'])
-            ])
-        col_widths = [40, 120, 340]
-
-        # Table styling
-        table = Table(data, colWidths=col_widths)
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#F8F9FA")),
-            ('TEXTCOLOR', (0,0), (-1,0), colors.HexColor("#E1306C")),
-            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-            ('FONTSIZE', (0,0), (-1,0), 12),
-            ('BOTTOMPADDING', (0,0), (-1,0), 12),
-            ('GRID', (0,0), (-1,-1), 1, colors.lightgrey),
-        ]))
-        elements.append(table)
-
-        doc.build(elements)
         buffer.seek(0)
         return send_file(
             buffer,
@@ -266,13 +239,53 @@ def analyze_pdf():
         app.logger.error(f"PDF error: {str(e)}")
         return jsonify(error=str(e)), 400
 
-@app.after_request
+def create_pdf_elements(non_followers, styles):
+    """Modular PDF creation with error handling"""
+    elements = []
+    
+    try:
+        # Header
+        elements.append(Paragraph("Instagram Non-Followers Report", styles['Title']))
+        elements.append(Spacer(1, 24))
+        
+        # Table data
+        data = [["#", "Username", "Profile Link"]]
+        for user in non_followers:
+            data.append([
+                str(user['id']),
+                user['username'],
+                Paragraph(
+                    f"<a href='{user['profile_url']}'>{user['profile_url']}</a>", 
+                    styles['ProfileLink']
+                )
+            ])
+        
+        # Table styling
+        table = Table(data, colWidths=[40, 120, 340])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#F8F9FA")),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.HexColor("#E1306C")),
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('FONTSIZE', (0,0), (-1,0), 12),
+            ('BOTTOMPADDING', (0,0), (-1,0), 12),
+            ('GRID', (0,0), (-1,-1), 1, colors.lightgrey),
+        ]))
+        elements.append(table)
+    except Exception as e:
+        app.logger.error(f"PDF element creation error: {str(e)}")
+        raise
+    
+    return elements
+    @app.after_request
 def add_security_headers(response):
-    response.headers.update({
+    headers = {
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
-         "Access-Control-Expose-Headers": "Content-Disposition"
-    })
+        "Access-Control-Expose-Headers": "Content-Disposition",
+        "Content-Security-Policy": "default-src 'self'",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
+    }
+    response.headers.update(headers)
     return response
 
 @app.errorhandler(413)
