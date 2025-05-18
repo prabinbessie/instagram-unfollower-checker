@@ -153,34 +153,34 @@ class InstagramAnalyzer:
     def get_non_followers(cls, following_file, followers_file):
         """Smart file handling with fallback"""
         try:
-        # Preserve original order as fallback
-        orig_following = cls.process_file(following_file)
-        orig_followers = cls.process_file(followers_file)
-        
-        # Auto-detected order
-        processed_following, processed_followers = cls._auto_detect_files(following_file, followers_file)
-        auto_following = cls.process_file(processed_following)
-        auto_followers = cls.process_file(processed_followers)
-        
-        # Validate which result makes sense
-        if len(auto_following) > len(auto_followers):
-            final_following = auto_following
-            final_followers = auto_followers
-        else:
-            final_following = orig_following
-            final_followers = orig_followers
+            # Preserve original order as fallback
+            orig_following = cls.process_file(following_file)
+            orig_followers = cls.process_file(followers_file)
+            
+            # Auto-detected order
+            processed_following, processed_followers = cls._auto_detect_files(following_file, followers_file)
+            auto_following = cls.process_file(processed_following)
+            auto_followers = cls.process_file(processed_followers)
+            
+            # Validate which result makes sense
+            if len(auto_following) > len(auto_followers):
+                final_following = auto_following
+                final_followers = auto_followers
+            else:
+                final_following = orig_following
+                final_followers = orig_followers
 
-        non_followers = list(set(final_following) - set(final_followers))
-        
-    except Exception as e:
-        app.logger.error(f"Comparison error: {str(e)}")
-        non_followers = list(set(orig_following) - set(orig_followers))
+            non_followers = list(set(final_following) - set(final_followers))
+            
+        except Exception as e:
+            app.logger.error(f"Comparison error: {str(e)}")
+            non_followers = list(set(orig_following) - set(orig_followers))
 
-    return [{
-        'id': i+1,
-        'username': user,
-        'profile_url': f"https://www.instagram.com/{user}"
-    } for i, user in enumerate(non_followers)]
+        return [{
+            'id': i+1,
+            'username': user,
+            'profile_url': f"https://www.instagram.com/{user}"
+        } for i, user in enumerate(non_followers)]
 
 @app.route('/')
 def home():
