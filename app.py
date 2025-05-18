@@ -275,8 +275,7 @@ def create_pdf_elements(non_followers, styles):
         app.logger.error(f"PDF element creation error: {str(e)}")
         raise
     
-    return elements
-    @app.after_request
+@app.after_request
 def add_security_headers(response):
     headers = {
         "X-Content-Type-Options": "nosniff",
