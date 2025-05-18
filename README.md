@@ -1,6 +1,10 @@
 # 📉 Instagram Unfollower Detective
 
+<<<<<<< HEAD
 [![Version](https://img.shields.io/badge/version-3.1.2-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
+=======
+[![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
+>>>>>>> origin/main
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
