@@ -1,9 +1,9 @@
 # 📉 Instagram Unfollower Checker
 
-[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)  
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)  
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)  
-[![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)  
+[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
+[![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 A Flask-powered web app to find Instagram accounts you follow that don’t follow you back. Supports both JSON and HTML data exports directly from Instagram.
 
