@@ -1,14 +1,5 @@
-blinker==1.9.0
-chardet==5.2.0
-click==8.1.8
-Flask==3.1.0
-gunicorn==23.0.0
-itsdangerous==2.2.0
-Jinja2==3.1.6
-MarkupSafe==3.0.2
-packaging==25.0
-pillow==11.2.1
-reportlab==4.4.0
-Werkzeug==3.1.3
-python-dotenv==1.0.0
-beautifulsoup4==4.12.3
+Flask==3.1.0 
+beautifulsoup4==4.12.3  # for parsing Instagram’s HTML export
+reportlab==4.4.0       # for PDF-generation
+pytest                # to  test suite
+gunicorn==23.0.0      # (optional) for production

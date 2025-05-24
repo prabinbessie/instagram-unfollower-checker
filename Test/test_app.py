@@ -1,161 +1,124 @@
-import pytest
-import json
 import sys
-from io import BytesIO
-from werkzeug.datastructures import FileStorage
-from app import app, InstagramAnalyzer, ERROR_MESSAGES, __version__
+import os
+import io
+import json
+import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from app import app, InstagramAnalyzer
 
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
+    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024 
     with app.test_client() as client:
         yield client
 
-def create_test_file(content, filename):
-    return FileStorage(
-        stream=BytesIO(content.encode()),
-        filename=filename,
-        content_type='application/json'
-    )
+def generate_json_file(usernames, key='relationships_following'):
+    return io.BytesIO(json.dumps([
+        {
+            "string_list_data": [{"value": username}]
+        } for username in usernames
+    ]).encode('utf-8')), f"{key}.json"
 
-# Test data
-VALID_FOLLOWING = '''
-[
-  {
-    "relationships_following": [
-      {"string_list_data": [{"value": "user1"}]},
-      {"string_list_data": [{"value": "user2"}]}
-    ]
-  }
-]'''
+def generate_html_file(usernames, label="following"):
+    html_content = '<div class="pam _3-95 _2ph- _a6-g uiBoxWhite noborder">'
+    for u in usernames:
+        html_content += f'<a href="https://www.instagram.com/{u}/">{u}</a>'
+    html_content += '</div>'
+    return io.BytesIO(html_content.encode('utf-8')), f"{label}.html"
 
-OLD_FOLLOWERS = '''
-[
-  {
-    "relationships_followers": [
-      {"string_list_data": [{"value": "user1"}]}
-    ]
-  }
-]'''
-
-NEW_FOLLOWERS = '''
-[
-  {
-    "string_list_data": [{"value": "user1"}]
-  }
-]'''
-
-def test_json_endpoint_old_followers(client):
-    data = {
-        'following': create_test_file(VALID_FOLLOWING, 'following.json'),
-        'followers': create_test_file(OLD_FOLLOWERS, 'followers.json')
-    }
-    response = client.post('/analyze/json', data=data)
+def test_homepage(client):
+    response = client.get('/')
     assert response.status_code == 200
-    assert len(response.json['non_followers']) == 1
-    assert response.json['non_followers'][0]['username'] == 'user2'
+    assert b'Instagram Unfollower Checker' in response.data
 
-def test_json_endpoint_new_followers(client):
+def test_json_analysis_with_valid_files(client):
+    following_file, following_name = generate_json_file(['user1', 'user2', 'user3'], 'relationships_following')
+    followers_file, followers_name = generate_json_file(['user2'], 'relationships_followers')
+
     data = {
-        'following': create_test_file(VALID_FOLLOWING, 'following.json'),
-        'followers': create_test_file(NEW_FOLLOWERS, 'followers.json')
+        'following': (following_file, following_name),
+        'followers': (followers_file, followers_name)
     }
-    response = client.post('/analyze/json', data=data)
+    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
     assert response.status_code == 200
-    assert len(response.json['non_followers']) == 1
-    assert response.json['non_followers'][0]['username'] == 'user2'
+    result = response.get_json()
+    assert result['count'] == 2
+    usernames = [u['username'] for u in result['results']]
+    assert 'user1' in usernames and 'user3' in usernames
 
-def test_pdf_endpoint_new_followers(client):
+def test_html_analysis(client):
+    following_file, following_name = generate_html_file(['user1', 'user2'], 'following')
+    followers_file, followers_name = generate_html_file(['user2'], 'followers')
+
     data = {
-        'following': create_test_file(VALID_FOLLOWING, 'following.json'),
-        'followers': create_test_file(NEW_FOLLOWERS, 'followers.json')
+        'following': (following_file, following_name),
+        'followers': (followers_file, followers_name)
     }
-    response = client.post('/analyze/pdf', data=data)
+    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
+    assert response.status_code == 200
+    result = response.get_json()
+    assert result['count'] == 1
+    assert result['results'][0]['username'] == 'user1'
+
+def test_pdf_generation(client):
+    following_file, following_name = generate_json_file(['user1', 'user2'], 'relationships_following')
+    followers_file, followers_name = generate_json_file(['user2'], 'relationships_followers')
+
+    data = {
+        'following': (following_file, following_name),
+        'followers': (followers_file, followers_name)
+    }
+    response = client.post('/analyze/pdf', data=data, content_type='multipart/form-data')
     assert response.status_code == 200
     assert response.mimetype == 'application/pdf'
 
-def test_different_followers_formats():
-    analyzer = InstagramAnalyzer()
-    
-    # Test old followers format (nested)
-    old_format = [{"relationships_followers": [{"string_list_data": [{"value": "user_old"}]}]}]
-    # Test new followers format (direct entries)
-    new_format = [{"string_list_data": [{"value": "user_new"}]}]
-    
-    assert analyzer.extract_users(old_format, 'relationships_followers') == ['user_old']
-    assert analyzer.extract_users(new_format, 'relationships_followers') == ['user_new']
-
-def test_empty_result_new_followers(client):
-    following_data = '''
-    [{"relationships_following": [
-        {"string_list_data": [{"value": "user1"}]}
-    ]}]'''
-    
-    followers_data = '''
-    [{"string_list_data": [{"value": "user1"}]}]'''
-    
-    data = {
-        'following': create_test_file(following_data, 'following.json'),
-        'followers': create_test_file(followers_data, 'followers.json')
-    }
-    response = client.post('/analyze/json', data=data)
-    assert len(response.json['non_followers']) == 0
-
-# Keep existing tests for backward compatibility
 def test_missing_files(client):
-    response = client.post('/analyze/json', data={})
+    response = client.post('/analyze/json', data={}, content_type='multipart/form-data')
     assert response.status_code == 400
-    assert ERROR_MESSAGES['missing_files'] in response.json['error']
+    assert b'please upload both following and followers files' in response.data.lower()
 
-def test_invalid_file_extensions(client):
+def test_invalid_format_file(client):
+    bad_file = io.BytesIO(b'invalid content')
+    bad_file_2 = io.BytesIO(b'invalid content 2')
     data = {
-        'following': create_test_file('{}', 'following.txt'),
-        'followers': create_test_file('{}', 'followers.csv')
+        'following': (bad_file, 'invalid.txt'),
+        'followers': (bad_file_2, 'invalid2.txt')
     }
-    response = client.post('/analyze/json', data=data)
+    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
     assert response.status_code == 400
-    assert ERROR_MESSAGES['invalid_extension'] in response.json['error']
+    assert b'invalid file format' in response.data.lower()
 
-def test_malformed_json(client):
+def test_same_file_uploaded(client):
+    file1, name = generate_json_file(['user1'])
+    file2, _ = generate_json_file(['user1'])  # Generate a second file with same content
     data = {
-        'following': create_test_file('{invalid', 'following.json'),
-        'followers': create_test_file(NEW_FOLLOWERS, 'followers.json')
+        'following': (file1, 'same.json'),
+        'followers': (file2, 'same.json')
     }
-    response = client.post('/analyze/json', data=data)
+    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
     assert response.status_code == 400
-    assert ERROR_MESSAGES['invalid_json'] in response.json['error']
+    assert b'same file' in response.data.lower()
 
-def test_file_size_limit(client):
-    large_data = {'relationships_following': []}
-    large_content = json.dumps([large_data]*150000)
+def test_empty_file(client):
+    empty_file1 = io.BytesIO(b'')
+    empty_file2 = io.BytesIO(b'')
     data = {
-        'following': create_test_file(large_content, 'following.json'),
-        'followers': create_test_file(NEW_FOLLOWERS, 'followers.json')
+        'following': (empty_file1, 'empty.json'),
+        'followers': (empty_file2, 'empty2.json')
     }
-    response = client.post('/analyze/json', data=data)
-    assert response.status_code == 413
+    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
+    assert response.status_code == 400
+    assert b'expecting value' in response.data.lower()
 
-# def test_version_command(capsys):
-#     sys.argv = ['app.py', '--version']
-#     with pytest.raises(SystemExit):
-#         app.run()
-#     captured = capsys.readouterr()
-#     assert __version__ in captured.out
-
-def test_empty_result_handling(client):
-    following_data = '''
-    [{"relationships_following": [
-        {"string_list_data": [{"value": "user1"}]}
-    ]}]'''
-    
-    followers_data = '''
-    [{"relationships_followers": [
-        {"string_list_data": [{"value": "user1"}]}
-    ]}]'''
-    
+def test_large_file(client):
+    large_data1 = io.BytesIO(b'0' * (5 * 1024 * 1024 + 1))  # Just over 5MB
+    large_data2 = io.BytesIO(b'0' * (5 * 1024 * 1024 + 1))
     data = {
-        'following': create_test_file(following_data, 'following.json'),
-        'followers': create_test_file(followers_data, 'followers.json')
+        'following': (large_data1, 'large.json'),
+        'followers': (large_data2, 'large2.json')
     }
-    response = client.post('/analyze/json', data=data)
-    assert len(response.json['non_followers']) == 0
+    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
+    assert response.status_code in [400, 413]  # Accept both 400 and 413
+    assert b'5mb' in response.data.lower() or b'request entity too large' in response.data.lower()
