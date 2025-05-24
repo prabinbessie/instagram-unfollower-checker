@@ -1,83 +1,54 @@
-# 📉 Instagram Unfollower Detective
-[![Version](https://img.shields.io/badge/version-3.1.2-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
+# 📉 Instagram Unfollower Checker
 
-A Flask-powered tool to analyze Instagram relationships and identify non-reciprocal follows. Supports both JSON and HTML exports from Instagram.
+[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)  
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)  
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)  
+[![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)  
+
+A Flask-powered web app to find Instagram accounts you follow that don’t follow you back. Supports both JSON and HTML data exports directly from Instagram.
 
 🔗 **Live Demo**: [instagram-unfollower-checker.onrender.com](https://instagram-unfollower-checker.onrender.com)
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-### Dual Format Support
-- Handles both legacy and modern Instagram Format JSON /Htmlformats (.zip Soon)
-- Processes nested (`relationships_followers`) and flat structures
-- Automatic format detection with fallback mechanisms
+- **Dual-format Import**  
+  Accepts both Instagram’s HTML and JSON data exports (followers & following).
 
-### Performance & Security
--  O(1) lookup performance for datasets >100k entries
--  C40% memory reduction in PDF generation
+- **Smart File Detection**  
+  Automatically swaps/fixes reversed uploads by inspecting filenames or content.
 
-### Multi-Format Reporting
-- 📄 Download PDF with clickable profile links
-- 📱 Mobile-optimized HTML results
-- 📋 CSV export (preview)
-### Enhanced UX & Feedback
-- custom file upload UI with live validation feedback
-- Form reset support with preserved analysis state
-- Toggleable data guide for new users
+- **Instant Web Results**  
+  Mobile-responsive list view of all non-reciprocal follows with clickable profile links.
 
+- **On-demand PDF Report**  
+  Generate and download a styled PDF report, with embedded links and clear layout.
+
+- **Lightweight & Secure**  
+  No external API calls, all processing happens in your server memory. Strict file-type and size checks, plus modern security headers.
+
+- **Extensible Architecture**  
+  Modular analyzer class, easy to add CSV or Excel export in future.
 
 ---
 
-## 🛠 Recent Improvements (v3.1.2)
-### Added
-- New validation for duplicate file uploads
-- Enhanced file type auto-detection logic
-- Additional security headers for PDF downloads
+## v4.0.0 — Recent Improvements
 
-### Improved
-- File structure detection accuracy for JSON files
-- Error messages for common upload mistakes
-- PDF generation reliability across browsers
+**Added**  
+- “Clear” button to reset form & results without reloading  
+- Automatic version bump from `version.py` into UI badge  
+- Context-aware error summaries (client + server)
 
-### Fixed
-- File swap detection for ambiguous filenames
-- Content-Disposition header handling for downloads
-- Memory cleanup after file processing
-## Features From V3
-- Supports both JSON and HTML Instagram data files
-- Automatic file type detection
-- PDF report generation
-- Direct profile links
-- Modern UI with Instagram-style design
+**Improved**  
+- Streamlined file-swap detection logic for faster analysis  
+- Enhanced mobile layout and button feedback animations  
+- More precise file-size and format validation messages
 
-### Form Handling
-- Added form reset post-submission
-- Removed auto PDF download; added manual trigger
-- Improved error handling and user feedback
-
-### File Validation
-- Client- and server-side file type/size validation
-- Enhanced JSON structure detection and error messages
-
-### PDF Generation
-- Moved to a separate endpoint
-- Triggered via button; independent of initial analysis
-- Preserves form state for consistent output
-
-### UI Enhancements
-- Custom file upload buttons and better visual hierarchy
-- Collapsible data guide and improved footer styling
-- Clearer feedback and form reset behavior
-
-### Security
-- Strict file type checks and size enforcement
-- Session-free architecture
-- Extended error logging and multi-level validation
+**Fixed**  
+- Occasional loading overlay hang on slow networks  
+- PDF `Content-Disposition` header omissions in Firefox/Edge  
+- Edge cases in HTML parser when Instagram markup changes
 
 ---
 
@@ -117,7 +88,7 @@ To use this tool, you’ll need to manually download your Instagram data. Here�
 
 1. **Go to Instagram → Settings → Your Information and Permisson → Download your information**
 2. Select **"Following and Followers"** (or "Connections")
-3. Choose **JSON** or **HTML**(fromV3) as the format
+3. Choose **JSON** or **HTML**(SupportFromV3) as the format
 4. Submit your request and wait for an email
 5. Download the ZIP file from the link in the email
 6. Extract it, and upload on our hosted:
@@ -132,10 +103,9 @@ To use this tool, you’ll need to manually download your Instagram data. Here�
 
 Once the files are uploaded, the tool processes them and shows:
 
--  Clickable Instagram profile links
--  People you follow who don’t follow you back
--  Downloadable PDF report
-- Visual summary (CSV export coming soon)
+-  A list of accounts you follow who don’t follow you back
+-  Clickable profile links right in your browser
+-  Styled PDF report for easy sharing or archiving
 
 ![Sample Output Screenshot](static/img/sample_results.png)
 
@@ -169,21 +139,17 @@ instagram-unfollower-checker/
 - Clone your fork locally
 - Create feature branch:
 `git checkout -b feat/your-feature`
-- Implement changes with:
-- Type hints for new code
-- PEP-8 compliance
-- 90%+ test coverage
+- Implement code with type hints, PEP-8 style, and tests
 - Update CHANGELOG.md
 - Push changes:
 `git push origin feat/your-feature`
 - Create Pull Request with detailed description
-##  📜 License
+##  License
 
-Distributed under MIT License. See LICENSE for full text.
-
-##  📬Contact
-
+Distributed under [MIT License](LICENSE). See LICENSE for full text.
+## Contact
+---
 **Prabin Bhandari**
-- 📧 bhandariprabin84@gmail.com
+-  em8een@gmail.com
 -  Instagram @prabinbhandarii
--  Twitter @prabinbessie
+---
