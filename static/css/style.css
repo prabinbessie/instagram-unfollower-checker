@@ -1,87 +1,191 @@
 :root {
-    --ig-pink: #E1306C;
-    --ig-purple: #833AB4;
-    --ig-blue: #405DE6;
+  --ig-pink: #E1306C;
+  --ig-purple: #833AB4;
+  --ig-blue: #405DE6;
+  --ig-shadow: rgba(0, 0, 0, 0.05);
 }
 
 body {
-    background: #fafafa;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #fafafa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .ig-header {
-    background: linear-gradient(45deg, var(--ig-blue), var(--ig-purple), var(--ig-pink));
-    color: white;
-    padding: 4rem 0;
-    text-align: center;
-    margin-bottom: 3rem;
+  background: linear-gradient(45deg, var(--ig-blue), var(--ig-purple), var(--ig-pink));
+  color: white;
+  padding: 4rem 0;
+  text-align: center;
+  margin-bottom: 3rem;
+  box-shadow: 0 4px 12px var(--ig-shadow);
 }
 
 .upload-card {
-    background: white;
-    border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 12px var(--ig-shadow);
+  transition: transform 0.2s;
+}
+.upload-card:hover {
+  transform: translateY(-2px);
 }
 
 .file-upload {
-    margin: 1.5rem 0;
-    border: 2px dashed #ddd;
-    padding: 2rem;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
+  margin: 1.5rem 0;
 }
-
-.file-upload:hover {
-    border-color: var(--ig-pink);
-    background: rgba(225, 48, 108, 0.05);
+.file-upload label {
+  display: block;
+  cursor: pointer;
+  border: 2px dashed #ddd;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  transition: border-color 0.3s, background 0.3s;
+}
+.file-upload label:hover,
+.file-upload label.hovered {
+  border-color: var(--ig-pink);
+  background: rgba(225, 48, 108, 0.05);
+}
+.file-upload input {
+  display: none;
+}
+.file-upload .text-muted {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
 }
 
 .btn-analyze {
-    background: var(--ig-pink);
-    color: white;
-    padding: 1rem 2rem;
-    border: none;
-    border-radius: 0.5rem;
-    width: 100%;
-    font-size: 1.1rem;
-    transition: transform 0.2s ease;
+  background: var(--ig-pink);
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  width: 100%;
+  font-size: 1.1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-analyze:hover,
+.btn-analyze:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--ig-shadow);
+  background: #C9225B;
+  outline: none;
 }
 
-.btn-analyze:hover {
-    transform: translateY(-2px);
-    background: #C9225B;
+.results-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 12px var(--ig-shadow);
+  margin-top: 2rem;
 }
 
 .user-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #eee;
 }
 
 .username {
-    color: var(--ig-pink);
-    text-decoration: none;
-    font-weight: 500;
+  color: var(--ig-pink);
+  text-decoration: none;
+  font-weight: 500;
 }
 
 .username:hover {
-    color: var(--ig-purple);
+  color: var(--ig-purple);
 }
 
 .loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255,255,255,0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+input[type="file"] {
+        display: none;
+    }
+    .custom-file-upload {
+        border: 2px solid #E1306C;
+        padding: 6px 12px;
+        cursor: pointer;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 0.5rem solid #f3f3f3;
+  border-top: 0.5rem solid var(--ig-pink);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-/* Complete CSS available in GitHub repo */
+.btn-download-pdf {
+  background: var(--ig-purple);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-download-pdf:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-download-pdf:hover:enabled,
+.btn-download-pdf:focus:enabled {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--ig-shadow);
+  outline: none;
+}
+
+.developer-section {
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  padding: 2rem;
+  border-radius: 1rem;
+  margin-top: 3rem;
+  box-shadow: 0 2px 8px var(--ig-shadow);
+  border: 1px solid #eee;
+}
+
+.guide-toggle {
+  color: var(--ig-pink);
+  cursor: pointer;
+  margin: 1rem 0;
+}
+
+.data-guide {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  display: none;
+}
+
+.footer {
+  margin-top: 3rem;
+  padding: 2rem 0;
+  text-align: center;
+  background: #fff;
+}
+
+.badge-version {
+  font-size: 0.8em;
+  vertical-align: super;
+  cursor: help;
+}
