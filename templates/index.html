@@ -11,75 +11,89 @@
 <body>
   <div class="loading-overlay" id="loading">
     <div class="spinner"></div>
-    <p class="mt-3">Analyzing your Instagram connections...</p>
+    <div class="loading-text" id="loadingText">Analyzing your Instagram connections...</div>
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
   </div>
 
-  <header class="ig-header">
-    <div class="container">
-      <h1>
-        <i class="fab fa-instagram"></i>
-        Instagram Unfollower Checker
-        <span class="badge bg-light text-dark badge-version" title="v{{ version }}">v{{ version }}</span>
-      </h1>
-      <p class="lead">Discover who isn't following you back</p>
-    </div>
-  </header>
-
+  <div class="main-wrapper">
+    <header class="ig-header">
+      <div class="container">
+        <h1>
+          <i class="fab fa-instagram"></i>
+          Instagram Unfollower Checker
+          <span class="badge-version" title="v{{ version }}">v{{ version }}</span>
+        </h1>
+        <p class="lead">Discover who isn't following you back with advanced analytics</p>
+      </div>
+    </header>
   <main class="container main-content">
-    <div class="upload-card">
-      <h2><i class="fas fa-cloud-upload-alt"></i> Upload Your Data</h2>
-      <form id="uploadForm" enctype="multipart/form-data">
-        <div class="file-upload">
-          <label for="following"><i class="fas fa-user-plus"></i><br>
-            Following Data (JSON/HTML)
-            <div id="followingFileName" class="text-muted"></div>
-          </label>
-          <input type="file" id="following" name="following" accept=".json,.html" required>
-        </div>
-        <div class="file-upload">
-          <label for="followers"><i class="fas fa-users"></i><br>
-            Followers Data (JSON/HTML)
-            <div id="followersFileName" class="text-muted"></div>
-          </label>
-          <input type="file" id="followers" name="followers" accept=".json,.html" required>
-        </div>
-        <button type="submit" class="btn-analyze">
-          <i class="fas fa-search"></i> Analyze Connections
-        </button>
-      </form>
-    </div>
+      <div class="upload-card">
+        <h2><i class="fas fa-cloud-upload-alt"></i> Upload Your Instagram Data</h2>
+        <form id="uploadForm" enctype="multipart/form-data">
+          <div class="file-upload">
+            <label for="following">
+              <i class="fas fa-user-plus"></i>
+              <div style="font-size: 1.2rem; font-weight: 600; margin: 1rem 0;">Following Data</div>
+              <div style="color: #666;">Upload your following.json or following.html file</div>
+              <div id="followingFileName" class="text-muted"></div>
+            </label>
+            <input type="file" id="following" name="following" accept=".json,.html" required>
+            <button type="button" class="btn-clear" data-for="following">
+              <i class="fas fa-times"></i> Clear
+            </button>
+          </div>
+          <div class="file-upload">
+            <label for="followers">
+              <i class="fas fa-users"></i>
+              <div style="font-size: 1.2rem; font-weight: 600; margin: 1rem 0;">Followers Data</div>
+              <div style="color: #666;">Upload your followers.json or followers.html file</div>
+              <div id="followersFileName" class="text-muted"></div>
+            </label>
+            <input type="file" id="followers" name="followers" accept=".json,.html" required>
+            <button type="button" class="btn-clear" data-for="followers">
+              <i class="fas fa-times"></i> Clear
+            </button>
+          </div>
+          <button type="submit" class="btn-analyze">
+            <i class="fas fa-search"></i> Analyze Connections
+          </button>
+        </form>
+      </div>
 
     <div id="results" class="results-container"></div>
   </main>
-
-  <footer class="footer">
-    <div class="container">
-      <div class="developer-section">
-        <h4>Developed with ❤️ by Prabin Bhandari</h4>
-        <div class="guide-toggle" onclick="toggleGuide()">
-          <i class="fas fa-question-circle"></i> How to get Instagram data?
+    <footer class="footer">
+      <div class="container">
+        <div class="developer-section">
+          <h4>Developed with ❤️ by Prabin Bhandari</h4>
+          <div class="guide-toggle" onclick="toggleGuide()">
+            <i class="fas fa-question-circle"></i> How to get Instagram data?
+          </div>
+          <div class="data-guide" id="dataGuide">
+            <ol>
+              <li>Go to your Instagram profile</li>
+              <li>Navigate to Settings → <b>Your Information & Permissions</b> → <b>Your Information</b></li>
+              <li>Tap on "<b>Download or transfer information</b>", choose your profile, and press "Next."</li>
+              <li>Select "<b>Some of your information</b>" and scroll to the "<b>Connections</b>" section</li>
+              <li>Choose only "<b>Followers and Following</b>" and press "Next" (HTML or JSON)</li>
+              <li>Upload the received files here</li>
+            </ol>
+          </div>
+          <a href="https://github.com/prabinbessie/instagram-unfollower-checker"
+             target="_blank"
+             class="btn btn-outline-dark mt-3"
+             style="border-radius: 50px; padding: 0.8rem 2rem;">
+            <i class="fab fa-github"></i> View on GitHub
+          </a>
         </div>
-        <div class="data-guide" id="dataGuide">
-          <ol class="text-start">
-            <li>Go to your Instagram profile</li>
-            <li>Navigate to Settings → <b>Your Information & Permissions</b> → <b>Your Information</b></li>
-            <li>Tap on "<b>Download or transfer information</b>", choose your profile, and press "Next."</li>
-            <li>Select "<b>Some of your information</b>" and scroll to the "<b>Connections</b>" section</li>
-            <li>Choose only "<b>Followers and Following</b>" and press "Next" (HTML or JSON)</li>
-            <li>Upload the received files here</li>
-          </ol>
+        <div class="disclaimer mt-3">
+          <small class="text-muted">Not affiliated with Instagram. We don't store your data.</small>
         </div>
-        <a href="https://github.com/prabinbessie/instagram-unfollower-checker"
-           target="_blank"
-           class="btn btn-outline-dark mt-2">
-          <i class="fab fa-github"></i> View on GitHub
-        </a>
       </div>
-      <div class="disclaimer mt-3">
-        <small class="text-muted">Not affiliated with Instagram. We don't store your data.</small>
-      </div>
-    </div>
-  </footer>
+    </footer>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
@@ -169,6 +183,36 @@
         loading.style.display = 'none';
       }
     }
+    document.querySelectorAll('.btn-clear').forEach(button => {
+      button.addEventListener('click', function() {
+        const inputId = this.getAttribute('data-for');
+        const input = document.getElementById(inputId);
+        const fileNameDisplay = document.getElementById(inputId + 'FileName');
+        
+        input.value = '';
+        fileNameDisplay.textContent = '';
+        resultsContainer.innerHTML = '';
+        this.style.display = 'none';
+      });
+    });
+
+    // Show clear buttons when files are selected
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+      input.addEventListener('change', function() {
+        const fileNameDisplay = document.getElementById(this.id + 'FileName');
+        const clearButton = document.querySelector(`.btn-clear[data-for="${this.id}"]`);
+        
+        if (this.files.length) {
+          fileNameDisplay.textContent = `Selected: ${this.files[0].name}`;
+          clearButton.style.display = 'block';
+        } else {
+          fileNameDisplay.textContent = '';
+          clearButton.style.display = 'none';
+        }
+        
+        resultsContainer.innerHTML = '';
+      });
+    });
   </script>
 </body>
 </html>
