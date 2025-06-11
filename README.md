@@ -9,7 +9,7 @@
 
 > **Discover who's not following you back on Instagram with this privacy-focused, easy-to-use web application.**
 
-Ever wondered who among your 10,000+ followers list isn't following you back? Manually checking each profile against your 1,000 followers would take **hours or even days**. This powerful Flask-based web application does the heavy lifting for you in **seconds**.
+Ever wondered who among your 1000+ Following list isn't following you back? Manually checking each profile against your 10,000+ followers would take **hours or even days**. This powerful Flask-based web application does the heavy lifting for you in **seconds**.
 
 Simply upload your Instagram data files, and our smart analyzer compares your followers and following lists to instantly identify non-reciprocal connections in a secure way. Built with privacy in mind - all processing happens locally with zero data collection and full control of yours.
 
