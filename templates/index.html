@@ -6,6 +6,7 @@
   <title>Instagram Unfollower Checker v{{ version }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
@@ -32,29 +33,35 @@
       <div class="upload-card">
         <h2><i class="fas fa-cloud-upload-alt"></i> Upload Your Instagram Data</h2>
         <form id="uploadForm" enctype="multipart/form-data">
-          <div class="file-upload">
-            <label for="following">
-              <i class="fas fa-user-plus"></i>
-              <div style="font-size: 1.2rem; font-weight: 600; margin: 1rem 0;">Following Data</div>
-              <div style="color: #666;">Upload your following.json or following.html file</div>
-              <div id="followingFileName" class="text-muted"></div>
-            </label>
-            <input type="file" id="following" name="following" accept=".json,.html" required>
-            <button type="button" class="btn-clear" data-for="following">
-              <i class="fas fa-times"></i> Clear
-            </button>
+          <div class="file-upload" id="followingUpload">
+            <div class="drop-zone" data-target="following">
+              <label for="following">
+                <i class="fas fa-user-plus"></i>
+                <div style="font-size: 1.2rem; font-weight: 600; margin: 1rem 0;">Following Data</div>
+                <div style="color: #666;">Upload your following.json or following.html file</div>
+                <div class="drop-text">or drag and drop here</div>
+                <div id="followingFileName" class="text-muted"></div>
+              </label>
+              <input type="file" id="following" name="following" accept=".json,.html" required>
+              <button type="button" class="btn-clear" data-for="following">
+                <i class="fas fa-times"></i> Clear
+              </button>
+            </div>
           </div>
-          <div class="file-upload">
-            <label for="followers">
-              <i class="fas fa-users"></i>
-              <div style="font-size: 1.2rem; font-weight: 600; margin: 1rem 0;">Followers Data</div>
-              <div style="color: #666;">Upload your followers.json or followers.html file</div>
-              <div id="followersFileName" class="text-muted"></div>
-            </label>
-            <input type="file" id="followers" name="followers" accept=".json,.html" required>
-            <button type="button" class="btn-clear" data-for="followers">
-              <i class="fas fa-times"></i> Clear
-            </button>
+          <div class="file-upload" id="followersUpload">
+            <div class="drop-zone" data-target="followers">
+              <label for="followers">
+                <i class="fas fa-users"></i>
+                <div style="font-size: 1.2rem; font-weight: 600; margin: 1rem 0;">Followers Data</div>
+                <div style="color: #666;">Upload your followers.json or followers.html file</div>
+                <div class="drop-text">or drag and drop here</div>
+                <div id="followersFileName" class="text-muted"></div>
+              </label>
+              <input type="file" id="followers" name="followers" accept=".json,.html" required>
+              <button type="button" class="btn-clear" data-for="followers">
+                <i class="fas fa-times"></i> Clear
+              </button>
+            </div>
           </div>
           <button type="submit" class="btn-analyze">
             <i class="fas fa-search"></i> Analyze Connections
@@ -63,13 +70,77 @@
       </div>
 
     <div id="results" class="results-container"></div>
+    <div id="analyticsContainer" class="analytics-container" style="display: none;">
+      <div class="analytics-card">
+        <h3><i class="fas fa-chart-bar"></i> Analytics Dashboard</h3>
+        
+        <!-- Stats Overview -->
+        <div class="stats-grid" id="statsGrid">
+          <!-- Stats will be populated by JavaScript -->
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="charts-section">
+          <div class="chart-container">
+            <h4>Relationship Breakdown</h4>
+            <canvas id="relationshipChart" width="400" height="200"></canvas>
+          </div>
+          <div class="chart-container">
+            <h4>Follow Comparison</h4>
+            <canvas id="followChart" width="400" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="export-section">
+          <h4><i class="fas fa-download"></i> Export Data</h4>
+          <div class="export-options">
+            <button id="pdfBtn" class="btn-download-pdf">
+              <i class="fas fa-file-pdf"></i> Download PDF Report
+            </button>
+            <button class="btn-download csv" data-type="non_followers">
+              <i class="fas fa-file-csv"></i> Non-Followers CSV
+            </button>
+            <!-- <button class="btn-download csv" data-type="not_following_back">
+              <i class="fas fa-file-csv"></i> Not Following Back CSV
+            </button>
+            <button class="btn-download csv" data-type="mutual_followers">
+              <i class="fas fa-file-csv"></i> Mutual Followers CSV
+            </button> -->
+            <button class="btn-download csv" data-type="all_following">
+              <i class="fas fa-file-csv"></i> All Following CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="detailed-lists">
+          <div class="list-tabs">
+            <button class="list-tab active" data-tab="non-followers">Not Following Back</button>
+            <!-- <button class="list-tab" data-tab="not-following-back">Not Following Back</button> -->
+            <button class="list-tab" data-tab="mutual">Mutual Followers</button>
+          </div>
+          
+          <div class="search-filter-container">
+            <div class="search-box">
+              <input type="text" id="userSearch" placeholder="Search users...">
+              <i class="fas fa-search search-icon"></i>
+            </div>
+          </div>
+          
+          <div class="tab-content">
+            <div id="non-followers-list" class="user-list tab-pane active"></div>
+            <div id="not-following-back-list" class="user-list tab-pane"></div>
+            <div id="mutual-list" class="user-list tab-pane"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
     <footer class="footer">
       <div class="container">
         <div class="developer-section">
           <h4>Developed with ❤️ by Prabin Bhandari</h4>
           <div class="guide-toggle" onclick="toggleGuide()">
-            <i class="fas fa-question-circle"></i> How to get Instagram data?
+            <i class="fas fa-question-circle"></i> How to get Instagram data?(click to toggle)
           </div>
           <div class="data-guide" id="dataGuide">
             <ol>
@@ -135,15 +206,15 @@
               <span class="badge bg-secondary">#${u.id}</span>
             </div>
           `).join('');
-          resultsContainer.innerHTML = `
-            <div class="results-card">
-              <h3><i class="fas fa-users-slash"></i> ${data.count} Non-Followers Found</h3>
-              <div class="user-list">${usersHtml}</div>
-              <button id="pdfBtn" class="btn-download-pdf">
-                <i class="fas fa-file-pdf"></i> Download PDF Report
-              </button>
-            </div>`;
-          document.getElementById('pdfBtn').addEventListener('click', generatePDF);
+          // resultsContainer.innerHTML = `
+          //   <div class="results-card">
+          //     <h3><i class="fas fa-users-slash"></i> ${data.count} Non-Followers Found</h3>
+          //     <div class="user-list">${usersHtml}</div>
+          //     <button id="pdfBtn" class="btn-download-pdf">
+          //       <i class="fas fa-file-pdf"></i> Download PDF Report
+          //     </button>
+          //   </div>`;
+          // document.getElementById('pdfBtn').addEventListener('click', generatePDF);
         } else {
           resultsContainer.innerHTML = `<div class="alert-success">All follows are mutual! 🎉</div>`;
         }
@@ -155,8 +226,6 @@
         loading.style.display = 'none';
       }
     });
-
-    // PDF download
     async function generatePDF() {
       if (!lastFormData) return;
       const btn = document.getElementById('pdfBtn');
@@ -213,6 +282,355 @@
         resultsContainer.innerHTML = '';
       });
     });
+    let currentAnalysis = null;
+let currentCharts = {};
+
+//drag and drop 
+function initializeDragDrop() {
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    const input = zone.querySelector('input[type="file"]');
+    const label = zone.querySelector('label');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      zone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      zone.addEventListener(eventName, () => {
+        zone.classList.add('drag-over');
+      }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      zone.addEventListener(eventName, () => {
+        zone.classList.remove('drag-over');
+      }, false);
+    });
+    
+    zone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        input.files = files;
+        input.dispatchEvent(new Event('change'));
+      }
+    }, false);
+  });
+}
+
+function preventDefaults(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+async function performDetailedAnalysis(formData) {
+  try {
+    const response = await fetch('/analyze/detailed', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Analysis failed');
+    }
+    
+    currentAnalysis = data.analysis;
+    displayAnalytics(data.analysis);
+    
+    return data.analysis;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// dashboard
+function displayAnalytics(analysis) {
+  const container = document.getElementById('analyticsContainer');
+  const statsGrid = document.getElementById('statsGrid');
+  
+
+  statsGrid.innerHTML = `
+    <div class="stat-card mutual">
+      <div class="stat-number">${analysis.summary.mutual_followers}</div>
+      <div class="stat-label">Mutual Followers</div>
+    </div>
+    <div class="stat-card non-followers">
+      <div class="stat-number">${analysis.summary.non_followers}</div>
+      <div class="stat-label">Not Following Back</div>
+    </div>
+    <div class="stat-card not-following">
+      <div class="stat-number">${analysis.summary.not_following_back}</div>
+      <div class="stat-label">Results</div>
+    </div>
+    <div class="stat-card percentage">
+      <div class="stat-number">${analysis.summary.follow_back_ratio}%</div>
+      <div class="stat-label">Follow Back Ratio</div>
+    </div>
+  `;
+  createCharts(analysis.charts);
+  
+  populateUserLists(analysis.lists);
+  
+  container.style.display = 'block';
+  
+  container.scrollIntoView({ behavior: 'smooth' });
+}
+
+function createCharts(chartData) {
+
+  Object.values(currentCharts).forEach(chart => {
+    if (chart) chart.destroy();
+  });
+  
+  const relationshipCtx = document.getElementById('relationshipChart').getContext('2d');
+  currentCharts.relationship = new Chart(relationshipCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Mutual Followers', 'Non-Followers', ],
+      datasets: [{
+        data: [
+          chartData.relationship_breakdown.mutual,
+          chartData.relationship_breakdown.non_followers
+          
+        ],
+        backgroundColor: [
+          '#405DE6',
+          '#E1306C',
+          '#F77737'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+  
+
+  const followCtx = document.getElementById('followChart').getContext('2d');
+  currentCharts.follow = new Chart(followCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Following', 'Followers', 'Mutual'],
+      datasets: [{
+        data: [
+          chartData.follow_ratios.following,
+          chartData.follow_ratios.followers,
+          chartData.follow_ratios.mutual
+        ],
+        backgroundColor: [
+          '#833AB4',
+          '#405DE6',
+          '#E1306C'
+        ],
+        borderRadius: 8,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+function populateUserLists(lists) {
+  const containers = {
+    'non-followers': document.getElementById('non-followers-list'),
+    'not-following-back': document.getElementById('not-following-back-list'),
+    'mutual': document.getElementById('mutual-list')
+  };
+  
+  Object.entries(lists).forEach(([key, users]) => {
+    const container = containers[key.replace('_', '-')];
+    if (container) {
+      container.innerHTML = users.map(user => `
+        <div class="user-item" data-username="${user.username.toLowerCase()}">
+          <a href="${user.profile_url}" target="_blank" class="username">@${user.username}</a>
+          <div class="user-actions">
+            <button class="copy-btn" onclick="copyUsername('${user.username}')" title="Copy username">
+              <i class="fas fa-copy"></i>
+            </button>
+            <span class="badge bg-secondary">#${user.id}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  });
+}
+
+// Tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+  initializeDragDrop();
+  
+
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('list-tab')) {
+     
+      document.querySelectorAll('.list-tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+      
+   
+      e.target.classList.add('active');
+      const targetTab = e.target.dataset.tab;
+      const targetPane = document.getElementById(targetTab + '-list');
+      if (targetPane) {
+        targetPane.classList.add('active');
+      }
+    }
+  });
+  
+  // CSV export 
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.btn-download.csv')) {
+      const button = e.target.closest('.btn-download.csv');
+      const exportType = button.dataset.type;
+      downloadCSV(exportType);
+    }
+  });
+  
+  //Search functional
+  const searchInput = document.getElementById('userSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const activePane = document.querySelector('.tab-pane.active');
+      
+      if (activePane) {
+        const userItems = activePane.querySelectorAll('.user-item');
+        userItems.forEach(item => {
+          const username = item.dataset.username;
+          if (username.includes(searchTerm)) {
+            item.style.display = 'flex';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      }
+    });
+  }
+});
+
+// 
+async function downloadCSV(exportType) {
+  if (!lastFormData) return;
+  
+  const formData = new FormData(lastFormData);
+  formData.append('export_type', exportType);
+  
+  try {
+    loading.style.display = 'flex';
+    document.getElementById('loadingText').textContent = 'Preparing CSV export...';
+    
+    const response = await fetch('/analyze/csv', {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'CSV export failed');
+    }
+    
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `instagram_${exportType}_${Date.now()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    
+  } catch (error) {
+    alert(`Export error: ${error.message}`);
+  } finally {
+    loading.style.display = 'none';
+    document.getElementById('loadingText').textContent = 'Analyzing your Instagram connections...';
+  }
+}
+
+// Copy un
+function copyUsername(username) {
+  navigator.clipboard.writeText(username).then(() => {
+    showToast('Username copied to clipboard!');
+  }).catch(() => {
+    const textArea = document.createElement('textarea');
+    textArea.value = username;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showToast('Username copied to clipboard!');
+  });
+}
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+document.getElementById('uploadForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  lastFormData = new FormData(e.target);
+  resultsContainer.innerHTML = '';
+  document.getElementById('analyticsContainer').style.display = 'none';
+  
+  loading.style.display = 'flex';
+  
+  try {
+
+    const analysis = await performDetailedAnalysis(lastFormData);
+
+    if (analysis.summary.non_followers > 0) {
+      const usersHtml = analysis.lists.non_followers.slice(0, 10).map(u => `
+        <div class="user-item">
+          <a href="${u.profile_url}" target="_blank" class="username">@${u.username}</a>
+          <span class="badge bg-secondary">#${u.id}</span>
+        </div>
+      `).join('');
+      
+      // resultsContainer.innerHTML = `
+      //   <div class="results-card">
+      //     <h3><i class="fas fa-users-slash"></i> ${analysis.summary.non_followers} Non-Followers Found</h3>
+      //     <div class="user-list">${usersHtml}</div>
+      //     <button id="pdfBtn" class="btn-download-pdf">
+      //       <i class="fas fa-file-pdf"></i> Download PDF Report
+      //     </button>
+      //     <p class="mt-3"><small>Showing first 10 results. View full analytics below for complete data.</small></p>
+      //   </div>`;
+      
+      document.getElementById('pdfBtn').addEventListener('click', generatePDF);
+    } else {
+      resultsContainer.innerHTML = `<div class="alert-success">All follows are mutual! 🎉</div>`;
+    }
+    
+  } catch (err) {
+    resultsContainer.innerHTML = `<div class="alert alert-danger">
+      <i class="fas fa-exclamation-triangle"></i> ${err.message}
+    </div>`;
+  } finally {
+    loading.style.display = 'none';
+  }
+});
   </script>
 </body>
 </html>

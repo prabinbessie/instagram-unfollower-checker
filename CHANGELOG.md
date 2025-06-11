@@ -1,21 +1,41 @@
-## [4.0.0] – 2025-05-23
+## [4.5.0] – 2025-06-11
 
-## 🛠 v4.0.0 — Recent Improvements
+### Added
+- **Analytics Dashboard**  
+  - New detailed dashboard panel showing breakdowns for:
+    - Mutual Followers  
+    - Non-Followers (users you follow who don’t follow back)  
+    - Not-Following-Back (users who follow you but you don’t follow)  
+    - Follow-Back Ratio (%)  
+  - Interactive Chart graphs for:
+    - Relationship Breakdown (doughnut)  
+    - Follow Comparison (bar)  
+- **CSV Export**  
+  - Added export buttons for multiple data types:
+    - `not_following_back`  
+    - `all_following`  
+  - Downloads CSV files directly from the dashboard  
+- **PDF Report**  
+  - “Download PDF Report” button now accessible from both summary results and dashboard
 
-**Added**  
-- “Clear” button to reset form & results without reloading  
-- Automatic version bump from `version.py` into UI badge  
-- Context-aware error summaries (client + server)
+### Changed
+- **UI & Layout**  
+  - Refactored `style.css` to leverage flex and CSS grid for fully responsive views  
+  - Restyled upload cards, file-drop zones and result panels for better clarity on mobile and desktop  
+  - Improved tab styling and active-state indicator for user-lists  
+- **UX Improvements**  
+  - Always-clear previous results on file-select or “Clear” button click  
+  - Smooth scroll to dashboard on analysis completion  
+  - Real-time “Preparing CSV…” progress text
 
-**Improved**  
-- Streamlined file-swap detection logic for faster analysis  
-- Enhanced mobile layout and button feedback animations  
-- More precise file-size and format validation messages
+### Fixed
+- **Bug Fixes**  
+  - Fixed drop-zone “hover” state not clearing after drag-leave  
+  - Corrected broken “Not Following Back” tab content selector
 
-**Fixed**  
-- Occasional loading overlay hang on slow networks  
-- PDF `Content-Disposition` header omissions in Firefox/Edge  
-- Edge cases in HTML parser when Instagram markup changes
+### Internal / Maintenance
+- Cleaned up unused CSS selectors and consolidated media-queries  
+- added new ss 
 
 ---
 
