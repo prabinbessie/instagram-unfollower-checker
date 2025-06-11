@@ -6,6 +6,9 @@ import json
 import sys
 import time
 import logging
+import csv
+from collections import Counter
+from datetime import datetime
 from io import BytesIO
 from flask import Flask, request, jsonify, send_file, render_template
 from bs4 import BeautifulSoup
@@ -123,6 +126,86 @@ class InstagramAnalyzer:
             {'id': i+1, 'username': u, 'profile_url': f"https://www.instagram.com/{u}"}
             for i, u in enumerate(diff)
         ]
+    @classmethod
+    def get_detailed_analysis(cls, f1, f2):
+        """Enhanced analysis with detailed statistics"""
+        fol, folr = cls._auto_detect_files(f1, f2)
+        following = cls.process_file(fol)
+        followers = cls.process_file(folr)
+
+        following_set = set(following)
+        followers_set = set(followers)
+
+        non_followers = sorted(following_set - followers_set)
+        not_following_back = sorted(followers_set - following_set)
+        mutual_followers = sorted(following_set & followers_set)
+
+        # Calculate ratios
+        total_following = len(following)
+        total_followers = len(followers)
+        mutual_count = len(mutual_followers)
+
+        follow_back_ratio = (mutual_count / total_following * 100) if total_following > 0 else 0
+        follower_ratio = (total_followers / total_following) if total_following > 0 else 0
+
+        return {
+            'summary': {
+                'total_following': total_following,
+                'total_followers': total_followers,
+                'mutual_followers': mutual_count,
+                'non_followers': len(non_followers),
+                'not_following_back': len(not_following_back),
+                'follow_back_ratio': round(follow_back_ratio, 2),
+                'follower_ratio': round(follower_ratio, 2)
+            },
+            'lists': {
+                'non_followers': [
+                    {'id': i+1, 'username': u, 'profile_url': f"https://www.instagram.com/{u}"}
+                    for i, u in enumerate(non_followers)
+                ],
+                'not_following_back': [
+                    {'id': i+1, 'username': u, 'profile_url': f"https://www.instagram.com/{u}"}
+                    for i, u in enumerate(not_following_back)
+                ],
+                'mutual_followers': [
+                    {'id': i+1, 'username': u, 'profile_url': f"https://www.instagram.com/{u}"}
+                    for i, u in enumerate(mutual_followers[:100])  # Limit for performance
+                ]
+            },
+            'charts': {
+                'relationship_breakdown': {
+                    'mutual': mutual_count,
+                    'non_followers': len(non_followers),
+                    'not_following_back': len(not_following_back)
+                },
+                'follow_ratios': {
+                    'following': total_following,
+                    'followers': total_followers,
+                    'mutual': mutual_count
+                }
+            }
+        }
+
+    @staticmethod
+    def export_to_csv(data_list, filename_prefix):
+        """Export user list to CSV format"""
+        output = BytesIO()
+
+        # Convert BytesIO to text mode for CSV writer
+        text_stream = io.TextIOWrapper(output, encoding='utf-8', newline='')
+
+        writer = csv.writer(text_stream)
+        writer.writerow(['ID', 'Username', 'Profile URL'])
+
+        for user in data_list:
+            writer.writerow([user['id'], user['username'], user['profile_url']])
+
+        text_stream.flush()
+        output.seek(0)
+
+        return output
+
+
 
 @app.route('/')
 def home():
@@ -184,6 +267,71 @@ def analyze_pdf():
     except Exception as e:
         app.logger.error(f"PDF error: {e}")
         return jsonify(error=str(e)), 400
+@app.route('/analyze/detailed', methods=['POST'])
+def analyze_detailed():
+    """Enhanced analysis endpoint with detailed statistics"""
+    try:
+        InstagramAnalyzer.validate_files(request.files)
+        
+        analysis = InstagramAnalyzer.get_detailed_analysis(
+            request.files['following'], 
+            request.files['followers']
+        )
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Detailed analysis error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/analyze/csv', methods=['POST'])
+def analyze_csv():
+    """CSV export endpoint"""
+    try:
+        export_type = request.form.get('export_type', 'non_followers')
+        
+        InstagramAnalyzer.validate_files(request.files)
+        
+        analysis = InstagramAnalyzer.get_detailed_analysis(
+            request.files['following'], 
+            request.files['followers']
+        )
+        
+        # Get the requested data list
+        data_lists = {
+            'non_followers': analysis['lists']['non_followers'],
+            'not_following_back': analysis['lists']['not_following_back'],
+            'mutual_followers': analysis['lists']['mutual_followers'],
+            'all_following': analysis['lists']['non_followers'] + analysis['lists']['mutual_followers']
+        }
+        
+        if export_type not in data_lists:
+            return jsonify({'error': 'Invalid export type'}), 400
+            
+        data_list = data_lists[export_type]
+        
+        if not data_list:
+            return jsonify({'error': f'No data available for {export_type}'}), 400
+        
+        # Create CSV
+        csv_buffer = InstagramAnalyzer.export_to_csv(data_list, export_type)
+        
+        filename = f"instagram_{export_type}_{int(time.time())}.csv"
+        
+        return send_file(
+            csv_buffer,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/csv'
+        )
+        
+    except Exception as e:
+        app.logger.error(f"CSV export error: {e}")
+        return jsonify({'error': str(e)}), 400
 
 @app.after_request
 def add_security_headers(resp):

@@ -1,6 +1,6 @@
 # 📊 Instagram Unfollower Checker
 
-[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
+[![Version](https://img.shields.io/badge/version-4.5-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-2.0%2B-red.svg)](https://flask.palletsprojects.com/)
@@ -9,7 +9,7 @@
 
 > **Discover who's not following you back on Instagram with this privacy-focused, easy-to-use web application.**
 
-Ever wondered who among your 10,000+ following list isn't following you back? Manually checking each profile against your 5,000 followers would take **hours or even days**. This powerful Flask-based web application does the heavy lifting for you in **seconds**.
+Ever wondered who among your 10,000+ followers list isn't following you back? Manually checking each profile against your 1,000 followers would take **hours or even days**. This powerful Flask-based web application does the heavy lifting for you in **seconds**.
 
 Simply upload your Instagram data files, and our smart analyzer compares your followers and following lists to instantly identify non-reciprocal connections in a secure way. Built with privacy in mind - all processing happens locally with zero data collection and full control of yours.
 
@@ -23,6 +23,7 @@ Simply upload your Instagram data files, and our smart analyzer compares your fo
 - **JSON Export**: Full compatibility with Instagram's JSON data format
 - **HTML Export**: Parse Instagram's HTML data exports seamlessly
 - **Smart Detection**: Automatically identifies and processes file formats
+- **Dashboard with Charts**: Added a new analytics panel featuring interactive Chart doughnut and bar visualizations.
 
 ###  **Intelligent Processing**
 - **Auto File Correction**: Detects and fixes reversed file uploads
@@ -117,7 +118,7 @@ Simply upload your Instagram data files, and our smart analyzer compares your fo
 
 ![Instagram Data Download Process](static/img/instagram_data_download.jpg)
 
-### 💡 Pro Tips
+###  Pro Tips
 - **JSON format** provides more detailed information and faster processing
 - Keep your data files secure and delete them after analysis
 - The download process may take longer for accounts with many followers
@@ -205,55 +206,44 @@ python -m pytest Test/test_app.py
 
 ---
 
-##  Deployment
+## Changelog
 
-### Deploy to Render
-1. Fork this repository
-2. Connect your GitHub account to Render
-3. Create a new Web Service
-4. Select your forked repository
-5. Deploy automatically
-
-### Deploy to Heroku
-```bash
-heroku create your-app-name
-git push heroku main
-heroku open
-```
-
-### Docker Deployment
-```bash
-docker build -t instagram-unfollower-checker .
-docker run -p 5000:5000 instagram-unfollower-checker
-```
-
----
-
-## 📋 Changelog
-
-### v4.0.0 — Latest Release
+### v4.5.0 — Latest Release
 
 ####  **New Features**
-- **Clear button** for easy form reset without page reload
-- **Automatic version display** in UI from version.py
-- **Enhanced error handling** with context-aware summaries
+- **Analytics Dashboard**  
+  - New detailed dashboard panel showing breakdowns for:
+    - Mutual Followers  
+    - Non-Followers (users you follow who don’t follow back)  
+    - Not-Following-Back (users who follow you but you don’t follow)  
+    - Follow-Back Ratio (%)  
+  - Interactive Chart graphs for:
+    - Relationship Breakdown (doughnut)  
+    - Follow Comparison (bar)  
+- **CSV Export**  
+  - Added export buttons for multiple data types:
+    - `non_followers`  
+    - `not_following_back`  
+    - `all_following`  
+  - Downloads CSV files directly from the dashboard  
+- **PDF Report**  
+  - “Download PDF Report” button now accessible from both summary results and dashboard
 
-####  **Improvements**
-- **Optimized file detection** with streamlined swap logic
-- **Enhanced mobile experience** with better responsive design
-- **Improved animations** with smoother button feedback
-- **Better validation** with more precise error messages
-
-####  **Bug Fixes**
-- **Loading overlay issues** on slow network connections
-- **PDF download headers** for better browser compatibility
-- **HTML parser robustness** against Instagram markup changes
+### Changed
+- **UI & Layout**  
+  - Refactored `style.css` to leverage flex and CSS grid for fully responsive views  
+  - Restyled upload cards, file-drop zones and result panels for better clarity on mobile and desktop  
+  - Improved tab styling and active-state indicator for user-lists  
+- **UX Improvements**  
+  - Always-clear previous results on file-select or “Clear” button click  
+  - Smooth scroll to dashboard on analysis completion  
+  - Real-time “Preparing CSV…” progress text
 
 [View full changelog](CHANGELOG.md)
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 I love contributions! Here's how you can help make this project even better:
 
