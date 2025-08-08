@@ -7,6 +7,7 @@ import sys
 import time
 import logging
 import csv
+import io
 from collections import Counter
 from datetime import datetime
 from io import BytesIO
@@ -69,44 +70,92 @@ class InstagramAnalyzer:
 
     @classmethod
     def _auto_detect_files(cls, f1, f2):
+        """Auto-detect which file is following vs followers based on filename and content"""
         n1, n2 = f1.filename.lower(), f2.filename.lower()
-        if n2.count('following') > n2.count('followers'):
+        
+        # First, try by filename
+        if 'following' in n1 and 'follower' in n2:
+            return f1, f2
+        elif 'following' in n2 and 'follower' in n1:
             return f2, f1
-        # peek JSON
+        elif n2.count('following') > n2.count('followers'):
+            return f2, f1
+        
+        # Try by JSON content inspection
         try:
-            data = json.load(f1.stream)
             f1.stream.seek(0)
-            if isinstance(data, dict) and 'relationships_followers' in data:
-                return f2, f1
-        except Exception:
+            data1 = json.load(f1.stream)
             f1.stream.seek(0)
+            
+            if isinstance(data1, dict):
+                if 'relationships_following' in data1:
+                    return f1, f2
+                elif 'relationships_followers' in data1:
+                    return f2, f1
+        except (json.JSONDecodeError, Exception):
+            f1.stream.seek(0)
+            
+        # Default order if detection fails
         return f1, f2
 
     @classmethod
     def parse_html(cls, stream):
         soup = BeautifulSoup(stream.read(), 'html.parser')
-        users = {
-            a['href'].rstrip('/').split('/')[-1]
-            for a in soup.select(
-                'div.pam._3-95._2ph-._a6-g.uiBoxWhite.noborder a[href*="instagram.com"]'
-            )
-        }
+        
+        # Try multiple selectors for better compatibility
+        selectors = [
+            'div.pam._3-95._2ph-._a6-g.uiBoxWhite.noborder a[href*="instagram.com"]',  # Original
+            'a[href*="instagram.com/"]',  # More general
+            'a[href*="www.instagram.com/"]'  # Alternative
+        ]
+        
+        users = set()
+        for selector in selectors:
+            links = soup.select(selector)
+            for a in links:
+                href = a.get('href', '')
+                if 'instagram.com/' in href:
+                    # Extract username from URL
+                    username = href.rstrip('/').split('/')[-1]
+                    # Filter out invalid usernames
+                    if username and username not in ['explore', 'accounts', 'p', 'reel', 'tv', 'stories']:
+                        users.add(username)
+            
+            # If we found users, break early
+            if users:
+                break
+                
         return sorted(users)
 
     @classmethod
     def parse_json(cls, stream):
-        data = json.load(stream)
-        stream.seek(0)
+        try:
+            data = json.load(stream)
+            stream.seek(0)
+        except json.JSONDecodeError as e:
+            stream.seek(0)
+            raise ValueError(f"Invalid JSON format: {e}")
+            
         if isinstance(data, dict):
             entries = data.get('relationships_following') or data.get('relationships_followers') or []
         elif isinstance(data, list):
             entries = data
         else:
             entries = []
-        return sorted({
-            itm['string_list_data'][0]['value']
-            for itm in entries if itm.get('string_list_data')
-        })
+            
+        users = set()
+        for itm in entries:
+            try:
+                if isinstance(itm, dict) and 'string_list_data' in itm:
+                    string_data = itm['string_list_data']
+                    if isinstance(string_data, list) and len(string_data) > 0:
+                        if isinstance(string_data[0], dict) and 'value' in string_data[0]:
+                            users.add(string_data[0]['value'])
+            except (KeyError, IndexError, TypeError):
+                # Skip malformed entries
+                continue
+                
+        return sorted(users)
 
     @classmethod
     def process_file(cls, f):
@@ -189,21 +238,28 @@ class InstagramAnalyzer:
     @staticmethod
     def export_to_csv(data_list, filename_prefix):
         """Export user list to CSV format"""
-        output = BytesIO()
-
-        # Convert BytesIO to text mode for CSV writer
-        text_stream = io.TextIOWrapper(output, encoding='utf-8', newline='')
-
-        writer = csv.writer(text_stream)
+        import io
+        import csv
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
         writer.writerow(['ID', 'Username', 'Profile URL'])
-
+        
+        # Write data
         for user in data_list:
             writer.writerow([user['id'], user['username'], user['profile_url']])
-
-        text_stream.flush()
-        output.seek(0)
-
-        return output
+        
+        # Convert to bytes for Flask response
+        csv_content = output.getvalue()
+        output.close()
+        
+        # Return as BytesIO for send_file compatibility
+        bytes_output = BytesIO(csv_content.encode('utf-8'))
+        bytes_output.seek(0)
+        
+        return bytes_output
 
 
 
@@ -335,8 +391,29 @@ def analyze_csv():
 
 @app.after_request
 def add_security_headers(resp):
+    """Add comprehensive security headers"""
     resp.headers["X-Content-Type-Options"] = "nosniff"
     resp.headers["X-Frame-Options"] = "DENY"
+    resp.headers["X-XSS-Protection"] = "1; mode=block"
+    resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    resp.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "img-src 'self' data:; "
+        "font-src 'self' https://cdn.jsdelivr.net; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none';"
+    )
+    
+    # Add cache control for static assets
+    if resp.mimetype in ['text/css', 'application/javascript', 'image/png', 'image/jpg', 'image/jpeg']:
+        resp.headers["Cache-Control"] = "public, max-age=31536000"  # 1 year
+    else:
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+    
     return resp
 
 @app.errorhandler(413)
