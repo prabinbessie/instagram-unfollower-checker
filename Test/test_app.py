@@ -122,3 +122,162 @@ def test_large_file(client):
     response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
     assert response.status_code in [400, 413]  # Accept both 400 and 413
     assert b'5mb' in response.data.lower() or b'request entity too large' in response.data.lower()
+
+def test_detailed_analysis(client):
+    """Test the detailed analysis endpoint"""
+    following_file, following_name = generate_json_file(['user1', 'user2', 'user3'], 'relationships_following')
+    followers_file, followers_name = generate_json_file(['user2'], 'relationships_followers')
+
+    data = {
+        'following': (following_file, following_name),
+        'followers': (followers_file, followers_name)
+    }
+    response = client.post('/analyze/detailed', data=data, content_type='multipart/form-data')
+    assert response.status_code == 200
+    
+    result = response.get_json()
+    assert result['success'] is True
+    assert 'analysis' in result
+    
+    # Check summary data
+    summary = result['analysis']['summary']
+    assert summary['total_following'] == 3
+    assert summary['total_followers'] == 1
+    assert summary['mutual_followers'] == 1
+    assert summary['non_followers'] == 2
+    assert summary['not_following_back'] == 0
+    
+    # Check lists
+    lists = result['analysis']['lists']
+    assert len(lists['non_followers']) == 2
+    assert len(lists['mutual_followers']) == 1
+    assert lists['non_followers'][0]['username'] in ['user1', 'user3']
+
+def test_csv_export_non_followers(client):
+    """Test CSV export for non-followers"""
+    following_file, following_name = generate_json_file(['user1', 'user2', 'user3'], 'relationships_following')
+    followers_file, followers_name = generate_json_file(['user2'], 'relationships_followers')
+
+    data = {
+        'following': (following_file, following_name),
+        'followers': (followers_file, followers_name),
+        'export_type': 'non_followers'
+    }
+    response = client.post('/analyze/csv', data=data, content_type='multipart/form-data')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    
+    # Check CSV content
+    csv_content = response.data.decode('utf-8')
+    assert 'ID,Username,Profile URL' in csv_content
+    assert 'user1' in csv_content
+    assert 'user3' in csv_content
+    assert 'user2' not in csv_content  # user2 should not be in non-followers
+
+def test_csv_export_not_following_back(client):
+    """Test CSV export for users not following back"""
+    following_file, following_name = generate_json_file(['user2'], 'relationships_following')
+    followers_file, followers_name = generate_json_file(['user1', 'user2'], 'relationships_followers')
+
+    data = {
+        'following': (following_file, following_name),
+        'followers': (followers_file, followers_name),
+        'export_type': 'not_following_back'
+    }
+    response = client.post('/analyze/csv', data=data, content_type='multipart/form-data')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    
+    # Check CSV content
+    csv_content = response.data.decode('utf-8')
+    assert 'user1' in csv_content  # user1 follows you but you don't follow back
+
+def test_csv_export_mutual_followers(client):
+    """Test CSV export for mutual followers"""
+    following_file, following_name = generate_json_file(['user1', 'user2'], 'relationships_following')
+    followers_file, followers_name = generate_json_file(['user1', 'user3'], 'relationships_followers')
+
+    data = {
+        'following': (following_file, following_name),
+        'followers': (followers_file, followers_name),
+        'export_type': 'mutual_followers'
+    }
+    response = client.post('/analyze/csv', data=data, content_type='multipart/form-data')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    
+    # Check CSV content
+    csv_content = response.data.decode('utf-8')
+    assert 'user1' in csv_content  # user1 is mutual
+
+def test_csv_export_invalid_type(client):
+    """Test CSV export with invalid export type"""
+    following_file, following_name = generate_json_file(['user1'], 'relationships_following')
+    followers_file, followers_name = generate_json_file(['user2'], 'relationships_followers')
+
+    data = {
+        'following': (following_file, following_name),
+        'followers': (followers_file, followers_name),
+        'export_type': 'invalid_type'
+    }
+    response = client.post('/analyze/csv', data=data, content_type='multipart/form-data')
+    assert response.status_code == 400
+    assert b'invalid export type' in response.data.lower()
+
+def test_csv_export_no_data(client):
+    """Test CSV export when no data available"""
+    following_file, following_name = generate_json_file(['user1'], 'relationships_following')
+    followers_file, followers_name = generate_json_file(['user1'], 'relationships_followers')
+
+    data = {
+        'following': (following_file, following_name),
+        'followers': (followers_file, followers_name),
+        'export_type': 'non_followers'  # Should be empty since user1 is in both
+    }
+    response = client.post('/analyze/csv', data=data, content_type='multipart/form-data')
+    assert response.status_code == 400
+    assert b'no data available' in response.data.lower()
+
+def test_detailed_analysis_missing_files(client):
+    """Test detailed analysis with missing files"""
+    response = client.post('/analyze/detailed', data={}, content_type='multipart/form-data')
+    assert response.status_code == 400
+    result = response.get_json()
+    assert result['success'] is False
+    assert 'error' in result
+
+def test_security_headers(client):
+    """Test that security headers are properly set"""
+    response = client.get('/')
+    
+    # Check security headers
+    assert response.headers.get('X-Content-Type-Options') == 'nosniff'
+    assert response.headers.get('X-Frame-Options') == 'DENY'
+    assert response.headers.get('X-XSS-Protection') == '1; mode=block'
+    assert response.headers.get('Referrer-Policy') == 'strict-origin-when-cross-origin'
+    assert 'Content-Security-Policy' in response.headers
+    assert 'no-cache' in response.headers.get('Cache-Control', '')
+
+def test_improved_json_parsing_robustness(client):
+    """Test that JSON parsing handles malformed data gracefully"""
+    # Test with missing string_list_data
+    malformed_json = json.dumps([
+        {"timestamp": 1234567890},  # Missing string_list_data
+        {"string_list_data": []},   # Empty string_list_data
+        {"string_list_data": [{"value": "valid_user"}]},  # Valid entry
+    ]).encode('utf-8')
+    
+    following_file = io.BytesIO(malformed_json)
+    followers_file = io.BytesIO(json.dumps([]).encode('utf-8'))
+    
+    data = {
+        'following': (following_file, 'following.json'),
+        'followers': (followers_file, 'followers.json')
+    }
+    
+    # Should not crash, should handle gracefully
+    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
+    assert response.status_code == 200
+    result = response.get_json()
+    assert result['count'] == 1
+    assert result['results'][0]['username'] == 'valid_user'
