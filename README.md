@@ -88,12 +88,12 @@ Simply upload your Instagram data files or ZIP archive, and our smart analyzer c
 
 4. **Launch the application**
    ```bash
-   flask run --port 5000 --debug
+   flask run --port 5001 --debug
    ```
 
 5. **Open your browser**
    ```
-   http://localhost:5000
+   http://localhost:5001
    ```
 
 ---
