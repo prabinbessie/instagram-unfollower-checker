@@ -1,6 +1,6 @@
-# 📊 Instagram Unfollower Checker
+# Instagram Unfollower Checker
 
-[![Version](https://img.shields.io/badge/version-4.5-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
+[![Version](https://img.shields.io/badge/version-5.0-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-2.0%2B-red.svg)](https://flask.palletsprojects.com/)
@@ -11,43 +11,45 @@
 
 Ever wondered who among your 1000+ Following list isn't following you back? Manually checking each profile against your 10,000+ followers would take **hours or even days**. This powerful Flask-based web application does the heavy lifting for you in **seconds**.
 
+Simply upload your Instagram data files or ZIP archive, and our smart analyzer compares your followers and following lists to instantly identify non-reciprocal connections. Built with privacy in mind - all processing happens locally with zero data collection.
 
-Simply upload your Instagram data files, and our smart analyzer compares your followers and following lists to instantly identify non-reciprocal connections in a secure way. Built with privacy in mind - all processing happens locally with zero data collection and full control of yours.  
 🔗 **[Try Live Demo](https://instagram-unfollower-checker-nm16.onrender.com)**
-> **It will take upto 50 Second to load application**
-***[Demo Link 2 (v3)](https://instagram-unfollower-checker.onrender.com)***
+> **It will take up to 50 seconds to load application**
 
-
-
+---
 
 ## Features
+
+###  **Simplified Interface**
+- **Two Clear Lists**: View only what matters - people you follow and people who don't follow back
+- **Clean Design**: Streamlined UI focused on essential information
+- **Quick Search**: Filter through usernames instantly
 
 ###  **Dual Format Support**
 - **JSON Export**: Full compatibility with Instagram's JSON data format
 - **HTML Export**: Parse Instagram's HTML data exports seamlessly
 - **Smart Detection**: Automatically identifies and processes file formats
-- **Dashboard with Charts**: Added a new analytics panel featuring interactive Chart doughnut and bar visualizations.
 
-###  **Intelligent Processing**
-- **Auto File Correction**: Detects and fixes reversed file uploads
-- **Content Analysis**: Inspects both filenames and content for accurate processing
-- **Error Recovery**: Handles malformed or incomplete data gracefully
+###  **ZIP Archive Support**
+- **Direct ZIP Upload**: Upload Instagram's complete data archive without extraction
+- **Smart Extraction**: Automatically finds and processes files from nested folder structures
+- **Intelligent Detection**: Locates `following.html` and `followers_1.html` from `connections/followers_and_following/` folder
+
+###  **Export Options**
+- **CSV Export**: Download your data in spreadsheet format
+- **PDF Reports**: Generate professional PDF documents with embedded profile links
+- **Multiple Categories**: Export following list or unfollowers list separately
 
 ###  **Modern Web Interface**
+- **Drag & Drop**: Easy file upload with drag-and-drop support
 - **Responsive Design**: Perfect on desktop, tablet, and mobile devices
 - **Real-time Results**: Instant analysis with live progress indicators
 - **Interactive Links**: Clickable Instagram profile links for easy access
-- **Clean UI**: Intuitive interface with smooth animations
-
-###  **Professional Reporting**
-- **PDF Generation**: Create downloadable PDF reports with embedded links
-- **Styled Output**: Clean, professional layout for sharing
-- **Export Options**: Multiple format support for data portability 
 
 ###  **Privacy & Security First**
 - **Zero Data Storage**: No data saved on servers or databases
 - **Local Processing**: All analysis happens in memory during your session
-- **No API Calls**: Completely offline processing, no external dependencies
+- **No API Calls**:  no external dependencies
 - **Secure Headers**: Modern security practices implemented
 
 ---
@@ -96,7 +98,7 @@ Simply upload your Instagram data files, and our smart analyzer compares your fo
 
 ---
 
-##  Getting Your Instagram Data
+##  How to Get Your Instagram Data
 
 ### Step-by-Step Guide
 
@@ -116,14 +118,17 @@ Simply upload your Instagram data files, and our smart analyzer compares your fo
    - Extract the archive
 
 4. **Locate Required Files**
-   - `followers_1.json` or `followers.html`
-   - `following.json` or `following.html`
+   - Option 1: Upload the ZIP file directly (recommended)
+   - Option 2: Extract and upload individual files:
+        - `followers_1.json` or `followers.html`
+        - `following.json` or `following.html`
 
 ![Instagram Data Download Process](static/img/instagram_data_download.jpg)
 
 ###  Pro Tips
 - **JSON format** provides more detailed information and faster processing
 - Keep your data files secure and delete them after analysis
+- ZIP upload is the easiest - no need to extract or locate files manually
 - The download process may take longer for accounts with many followers
 
 ---
@@ -139,7 +144,7 @@ Simply upload your Instagram data files, and our smart analyzer compares your fo
 ### Export Options:
 - **Web View**: Interactive, mobile-friendly results page
 - **PDF Report**: Professional document with embedded links
-- **Raw Data**: Access to processed information for further analysis
+- **CSV Data**: Download lists in spreadsheet format
 
 ![Sample Results Screenshot](static/img/sample_results.png)
 
@@ -174,15 +179,6 @@ instagram-unfollower-checker/
 
 ---
 
-##  API Reference
-
-### Core Analyzer Class
-```python
-from analyzer import InstagramAnalyzer
-
-analyzer = InstagramAnalyzer()
-result = analyzer.analyze_files(followers_file, following_file)
-```
 
 ### Configuration Options
 - **File size limit**: 50MB per file
@@ -192,22 +188,6 @@ result = analyzer.analyze_files(followers_file, following_file)
 
 ---
 
-##  Testing
-
-Run the test suite to ensure everything works correctly:
-
-```bash
-# Run all tests
-python -m pytest Test/
-
-# Run with coverage
-python -m pytest Test/ --cov=app
-
-# Run specific test file
-python -m pytest Test/test_app.py
-```
-
----
 
 ## Changelog
 
@@ -249,13 +229,6 @@ python -m pytest Test/test_app.py
 ##  Contributing
 
 I love contributions! Here's how you can help make this project even better:
-
-###  Ways to Contribute
-- **Report bugs** by opening detailed issues
-- **Suggest features** that would improve user experience
-- **Submit pull requests** with code improvements
-- **Improve documentation** and help others understand the project
-- **Share the project** with others who might find it useful
 
 ###  Development Workflow
 
@@ -299,44 +272,6 @@ I love contributions! Here's how you can help make this project even better:
 
 ---
 
-##  Privacy & Security
-
-###  **Data Protection**
-- **No data collection**: We never store, access, or transmit your Instagram data
-- **Local processing**: All analysis happens in your browser/server memory
-- **Session-based**: Data is automatically cleared when you close the app
-- **No tracking**: No analytics, cookies, or user tracking
-
-###  **Security Features**
-- **File validation**: Strict file type and size checking
-- **Memory management**: Automatic cleanup after processing
-- **Secure headers**: HTTPS enforcement and security headers
-- **Input sanitization**: Protection against malicious file uploads
-
-###  **Best Practices**
-- Delete downloaded Instagram data files after analysis
-- Use the tool on trusted networks only
-- Keep your Instagram account credentials secure
-- Regularly review your Instagram privacy settings
-
----
-
-##  Support & FAQ
-
-### ❓ **Frequently Asked Questions**
-
-**Q: Is this tool safe to use?**
-A: Yes! The tool processes data locally and doesn't connect to Instagram or store any information.
-
-**Q: How long does Instagram data download take?**
-A: Usually less than hour, but can vary depending on account size and Instagram's processing queue.
-
-**Q: What if I get an error during analysis?**
-A: Check that you've uploaded the correct files (followers and following data) and that they're not corrupted.
-
-**Q: Can I use this for business accounts?**
-A: Absolutely! The tool works with any Instagram account type.
-
 ###  **Found a Bug?**
 1. Check existing [issues](https://github.com/prabinbessie/instagram-unfollower-checker/issues)
 2. Create a new issue with detailed description
@@ -351,12 +286,6 @@ Always looking to improve! Submit feature requests through GitHub issues.
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for full details.
 
-### What this means:
-- ❌ **Commercial use** -  Not allowed. You may not use this for financial or business-related gain
-- ✅ **Modification** - Modify and adapt the code
-- ✅ **Distribution** - Share and distribute freely
-- ✅ **Private use** - Use for personal projects
-- ⚠️ **Liability** - No warranty provided
 
 ---
 
@@ -367,18 +296,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 -  **Email**: [em8een@gmail.com](mailto:em8een@gmail.com)
 -  **Instagram**: [@prabinbhandarii](https://instagram.com/prabinbhandarii)
 -  **GitHub**: [@prabinbessie](https://github.com/prabinbessie)
-
----
-
-## 🌟 Show Your Support
-
-If this project helped you, please consider:
-
-- ⭐ **Starring the repository** on GitHub
-- 🐛 **Reporting bugs** to help improve the tool
-- 💡 **Suggesting features** for future development
-- 🤝 **Contributing code** to make it even better
-- 📢 **Sharing with friends** who might find it useful
 
 ---
 
