@@ -1,41 +1,31 @@
-## [4.5.0] – 2025-06-11
+## [5.0] – 2025-12-09
 
 ### Added
-- **Analytics Dashboard**  
-  - New detailed dashboard panel showing breakdowns for:
-    - Mutual Followers  
-    - Non-Followers (users you follow who don’t follow back)  
-    - Not-Following-Back (users who follow you but you don’t follow)  
-    - Follow-Back Ratio (%)  
-  - Interactive Chart graphs for:
-    - Relationship Breakdown (doughnut)  
-    - Follow Comparison (bar)  
-- **CSV Export**  
-  - Added export buttons for multiple data types:
-    - `not_following_back`  
-    - `all_following`  
-  - Downloads CSV files directly from the dashboard  
-- **PDF Report**  
-  - “Download PDF Report” button now accessible from both summary results and dashboard
-
-### Changed
-- **UI & Layout**  
-  - Refactored `style.css` to leverage flex and CSS grid for fully responsive views  
-  - Restyled upload cards, file-drop zones and result panels for better clarity on mobile and desktop  
-  - Improved tab styling and active-state indicator for user-lists  
-- **UX Improvements**  
-  - Always-clear previous results on file-select or “Clear” button click  
-  - Smooth scroll to dashboard on analysis completion  
-  - Real-time “Preparing CSV…” progress text
+* ZIP Archive Support 
+- Direct upload of Instagram's complete data archive
+- Smart extraction from nested folder structures (connections/followers_and_following/)
+- Automatic file detection (finds following.html and followers_1.html)
+- hidden file filtering
+- Simplified Interface
+- ** Streamlined to 2 essential lists: Following and Unfollowers
+- Removed unnecessary categories (mutual followers, not-following-back)
+- Cleaner, more focused user experience
+- Enhanced CSV Export
 
 ### Fixed
-- **Bug Fixes**  
-  - Fixed drop-zone “hover” state not clearing after drag-leave  
-  - Corrected broken “Not Following Back” tab content selector
+* FormData issues with file re-submission
+* Stores uploaded files for multiple exports without re-upload
+* UTF-8-sig encoding for Excel compatibility
 
-### Internal / Maintenance
-- Cleaned up unused CSS selectors and consolidated media-queries  
-- added new ss 
+### Changed
+* UI & Layout
+* Redesigned with simplified 2-tab system
+* Improved drag-and-drop file upload zone
+* Better mobile responsiveness
+* File Processing
+* Intelligent ZIP extraction with nested folder support
+* Better error handling and logging
+* Custom validation instead of HTML5 form validation
 
 ---
 
