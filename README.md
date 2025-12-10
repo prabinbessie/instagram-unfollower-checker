@@ -125,12 +125,6 @@ Simply upload your Instagram data files or ZIP archive, and our smart analyzer c
 
 ![Instagram Data Download Process](static/img/instagram_data_download.jpg)
 
-###  Pro Tips
-- **JSON format** provides more detailed information and faster processing
-- Keep your data files secure and delete them after analysis
-- ZIP upload is the easiest - no need to extract or locate files manually
-- The download process may take longer for accounts with many followers
-
 ---
 
 ##  What You'll Discover
@@ -177,52 +171,6 @@ instagram-unfollower-checker/
 - **Bootstrap** - Responsive UI components
 - **JavaScript** - Interactive functionality
 
----
-
-
-### Configuration Options
-- **File size limit**: 50MB per file
-- **Supported formats**: JSON, HTML
-- **Memory usage**: Optimized for large datasets
-- **Processing timeout**: 30 seconds maximum
-
----
-
-
-## Changelog
-
-### v4.5.0 — Latest Release
-
-####  **New Features**
-- **Analytics Dashboard**  
-  - New detailed dashboard panel showing breakdowns for:
-    - Mutual Followers  
-    - Non-Followers (users you follow who don’t follow back)  
-    - Not-Following-Back (users who follow you but you don’t follow)  
-    - Follow-Back Ratio (%)  
-  - Interactive Chart graphs for:
-    - Relationship Breakdown (doughnut)  
-    - Follow Comparison (bar)  
-- **CSV Export**  
-  - Added export buttons for multiple data types:
-    - `non_followers`  
-    - `not_following_back`  
-    - `all_following`  
-  - Downloads CSV files directly from the dashboard  
-- **PDF Report**  
-  - “Download PDF Report” button now accessible from both summary results and dashboard
-
-### Changed
-- **UI & Layout**  
-  - Refactored `style.css` to leverage flex and CSS grid for fully responsive views  
-  - Restyled upload cards, file-drop zones and result panels for better clarity on mobile and desktop  
-  - Improved tab styling and active-state indicator for user-lists  
-- **UX Improvements**  
-  - Always-clear previous results on file-select or “Clear” button click  
-  - Smooth scroll to dashboard on analysis completion  
-  - Real-time “Preparing CSV…” progress text
-
-[View full changelog](CHANGELOG.md)
 
 ---
 
