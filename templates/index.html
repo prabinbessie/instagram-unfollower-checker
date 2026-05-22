@@ -4,17 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Instagram Unfollower Checker v{{ version }}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="description" content="Find out who you follow on Instagram that doesn't follow you back. Private, in-browser, nothing stored.">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
   <div class="loading-overlay" id="loading">
     <div class="spinner"></div>
-    <div class="loading-text" id="loadingText">Analyzing...</div>
-    <div class="progress-container">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
+    <div class="loading-text" id="loadingText">Analyzing…</div>
   </div>
 
   <div class="main-wrapper">
@@ -25,52 +22,54 @@
           Instagram Unfollower Checker
           <span class="badge-version">v{{ version }}</span>
         </h1>
-        <p class="lead">Find who doesn't follow you back</p>
+        <p class="lead">Find out who doesn't follow you back</p>
       </div>
     </header>
 
     <main class="container main-content">
       <div class="upload-card">
         <h2><i class="fas fa-cloud-upload-alt"></i> Upload Instagram Data</h2>
-        
+
         <div class="info-banner">
           <i class="fas fa-info-circle"></i>
           <div>
-            <strong>Easy Upload:</strong> Upload individual JSON/HTML files OR your complete Instagram ZIP archive.
-            We automatically extract files from <code>connections/followers_and_following/</code> folder.
+            <strong>Two ways to upload:</strong> drop in both your
+            <code>following</code> and <code>followers</code> files (JSON or HTML),
+            or just your full Instagram <code>.zip</code> export — we'll find the
+            right files inside it.
           </div>
         </div>
 
-        <form id="uploadForm" enctype="multipart/form-data">
+        <form id="uploadForm" enctype="multipart/form-data" novalidate>
           <div class="file-upload">
             <div class="drop-zone" data-target="following">
               <label for="following">
                 <i class="fas fa-user-plus"></i>
                 <div class="upload-title">Following</div>
-                <div class="upload-desc">following.json, following.html, or ZIP</div>
-                <div class="drop-text">or drag & drop</div>
+                <div class="upload-desc">following.json / .html, or a ZIP</div>
+                <div class="drop-text">click or drag &amp; drop</div>
                 <div id="followingFileName" class="file-name-display"></div>
               </label>
               <input type="file" id="following" name="following" accept=".json,.html,.zip">
-              <button type="button" class="btn-clear" data-for="following">
+              <button type="button" class="btn-clear" data-for="following" aria-label="Remove following file">
                 <i class="fas fa-times"></i>
               </button>
             </div>
           </div>
 
-          <div class="or-divider"><span>OR</span></div>
+          <div class="or-divider"><span>+</span></div>
 
           <div class="file-upload">
             <div class="drop-zone" data-target="followers">
               <label for="followers">
                 <i class="fas fa-users"></i>
                 <div class="upload-title">Followers</div>
-                <div class="upload-desc">followers_1.json, followers.html, or ZIP</div>
-                <div class="drop-text">or drag & drop</div>
+                <div class="upload-desc">followers_1.json / .html, or a ZIP</div>
+                <div class="drop-text">click or drag &amp; drop</div>
                 <div id="followersFileName" class="file-name-display"></div>
               </label>
               <input type="file" id="followers" name="followers" accept=".json,.html,.zip">
-              <button type="button" class="btn-clear" data-for="followers">
+              <button type="button" class="btn-clear" data-for="followers" aria-label="Remove followers file">
                 <i class="fas fa-times"></i>
               </button>
             </div>
@@ -82,34 +81,38 @@
         </form>
       </div>
 
-      <div id="results" class="results-container"></div>
+      <div id="results" class="results-container" aria-live="polite"></div>
 
       <div id="analyticsContainer" class="analytics-container" style="display: none;">
         <div class="analytics-card">
           <h3><i class="fas fa-chart-bar"></i> Results</h3>
-          
+
           <div class="stats-grid" id="statsGrid"></div>
 
           <div class="detailed-lists">
             <div class="list-header">
               <h4><i class="fas fa-users"></i> User Lists</h4>
               <div class="search-container">
-                <input type="text" id="userSearch" placeholder="Search usernames..." class="search-input">
+                <input type="text" id="userSearch" placeholder="Search usernames…" class="search-input" aria-label="Search usernames">
                 <i class="fas fa-search search-icon"></i>
               </div>
             </div>
 
             <div class="list-tabs">
-              <button class="list-tab active" data-tab="unfollowers">
+              <button type="button" class="list-tab active" data-tab="unfollowers">
                 <i class="fas fa-user-times"></i> Unfollowers (<span id="count-unfollowers">0</span>)
               </button>
-              <button class="list-tab" data-tab="following">
+              <button type="button" class="list-tab" data-tab="mutual">
+                <i class="fas fa-handshake"></i> Mutual (<span id="count-mutual">0</span>)
+              </button>
+              <button type="button" class="list-tab" data-tab="following">
                 <i class="fas fa-user-plus"></i> Following (<span id="count-following">0</span>)
               </button>
             </div>
 
             <div class="tab-content">
               <div id="unfollowers-list" class="tab-pane active"></div>
+              <div id="mutual-list" class="tab-pane"></div>
               <div id="following-list" class="tab-pane"></div>
             </div>
           </div>
@@ -117,13 +120,13 @@
           <div class="export-section">
             <h4><i class="fas fa-download"></i> Export</h4>
             <div class="export-options">
-              <button id="pdfBtn" class="btn-download pdf">
-                <i class="fas fa-file-pdf"></i> PDF
+              <button type="button" id="pdfBtn" class="btn-download pdf">
+                <i class="fas fa-file-pdf"></i> Unfollowers PDF
               </button>
-              <button class="btn-download csv" data-type="unfollowers">
+              <button type="button" class="btn-download csv" data-type="unfollowers">
                 <i class="fas fa-file-csv"></i> Unfollowers CSV
               </button>
-              <button class="btn-download csv" data-type="following">
+              <button type="button" class="btn-download csv" data-type="following">
                 <i class="fas fa-file-csv"></i> Following CSV
               </button>
             </div>
@@ -137,7 +140,7 @@
         <div class="footer-content">
           <div class="footer-info">
             <h4><i class="fas fa-shield-alt"></i> Privacy</h4>
-            <p>All analysis is performed securely. Your data is processed and never stored.</p>
+            <p>Files are processed in memory and never stored. Nothing leaves this session.</p>
           </div>
           <div class="footer-links">
             <a href="https://github.com/prabinbessie/instagram-unfollower-checker" target="_blank" rel="noopener">
@@ -152,393 +155,304 @@
     </footer>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    let lastFormData = null;
-    let currentAnalysis = null;
-    let uploadedFiles = { following: null, followers: null };
-    
-    const loading = document.getElementById('loading');
-    const resultsContainer = document.getElementById('results');
-    const analyticsContainer = document.getElementById('analyticsContainer');
+    'use strict';
 
-    function initializeDragDrop() {
-      document.querySelectorAll('.drop-zone').forEach(zone => {
-        const input = zone.querySelector('input[type="file"]');
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-          zone.addEventListener(eventName, e => {
-            e.preventDefault();
-            e.stopPropagation();
-          });
-        });
-        
-        ['dragenter', 'dragover'].forEach(eventName => {
-          zone.addEventListener(eventName, () => zone.classList.add('drag-over'));
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-          zone.addEventListener(eventName, () => zone.classList.remove('drag-over'));
-        });
-        
-        zone.addEventListener('drop', e => {
-          const files = e.dataTransfer.files;
-          if (files.length > 0) {
-            input.files = files;
-            handleFileSelect(input);
-          }
-        });
-      });
+    const $ = (id) => document.getElementById(id);
+    const loading = $('loading');
+    const loadingText = $('loadingText');
+    const results = $('results');
+    const analytics = $('analyticsContainer');
+
+    // The file currently chosen for each field; null when empty.
+    const files = { following: null, followers: null };
+
+    const isZip = (file) => !!file && file.name.toLowerCase().endsWith('.zip');
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
     }
 
-    function handleFileSelect(input) {
-      const fileName = input.files[0]?.name || '';
-      const displayElement = document.getElementById(input.id + 'FileName');
+    /* ---------- file selection ---------- */
+
+    function setField(field, file) {
+      const input = $(field);
+      const display = $(field + 'FileName');
       const clearBtn = input.parentElement.querySelector('.btn-clear');
-      
-      if (fileName) {
-        displayElement.textContent = `✓ ${fileName}`;
-        displayElement.style.color = '#28a745';
-        if (clearBtn) clearBtn.style.display = 'block';
-        
-        uploadedFiles[input.id] = input.files[0];
-        
-        if (fileName.toLowerCase().endsWith('.zip')) {
-          const otherInputId = input.id === 'following' ? 'followers' : 'following';
-          const otherInput = document.getElementById(otherInputId);
-          const otherDisplay = document.getElementById(otherInputId + 'FileName');
-          const otherClearBtn = otherInput.parentElement.querySelector('.btn-clear');
-          
-          otherInput.value = '';
-          otherDisplay.textContent = '';
-          if (otherClearBtn) otherClearBtn.style.display = 'none';
-          uploadedFiles[otherInputId] = null;
-          
-          showToast('ZIP detected. Other field ignored.', 'success');
-        }
+
+      files[field] = file || null;
+      if (file) {
+        display.textContent = '✓ ' + file.name;
+        display.classList.add('has-file');
+        clearBtn.style.display = 'block';
       } else {
-        displayElement.textContent = '';
-        if (clearBtn) clearBtn.style.display = 'none';
-        uploadedFiles[input.id] = null;
-      }
-      
-      resultsContainer.innerHTML = '';
-      analyticsContainer.style.display = 'none';
-    }
-
-    document.querySelectorAll('input[type="file"]').forEach(input => {
-      input.addEventListener('change', () => handleFileSelect(input));
-    });
-
-    document.querySelectorAll('.btn-clear').forEach(button => {
-      button.addEventListener('click', function() {
-        const inputId = this.dataset.for;
-        const input = document.getElementById(inputId);
-        const displayElement = document.getElementById(inputId + 'FileName');
-        
         input.value = '';
-        displayElement.textContent = '';
-        this.style.display = 'none';
-        uploadedFiles[inputId] = null;
-        
-        resultsContainer.innerHTML = '';
-        analyticsContainer.style.display = 'none';
+        display.textContent = '';
+        display.classList.remove('has-file');
+        clearBtn.style.display = 'none';
+      }
+      results.innerHTML = '';
+      analytics.style.display = 'none';
+    }
+
+    function chooseFile(field, file) {
+      setField(field, file);
+      if (isZip(file)) {
+        setField(field === 'following' ? 'followers' : 'following', null);
+        toast('ZIP detected — the other field isn’t needed.');
+      }
+    }
+
+    document.querySelectorAll('.drop-zone').forEach((zone) => {
+      const field = zone.dataset.target;
+      const input = zone.querySelector('input[type="file"]');
+
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((evt) =>
+        zone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); }));
+      ['dragenter', 'dragover'].forEach((evt) =>
+        zone.addEventListener(evt, () => zone.classList.add('drag-over')));
+      ['dragleave', 'drop'].forEach((evt) =>
+        zone.addEventListener(evt, () => zone.classList.remove('drag-over')));
+
+      zone.addEventListener('drop', (e) => {
+        const dropped = e.dataTransfer.files;
+        if (dropped.length) { input.files = dropped; chooseFile(field, dropped[0]); }
       });
+      input.addEventListener('change', () => chooseFile(field, input.files[0] || null));
     });
 
-    document.getElementById('uploadForm').addEventListener('submit', async e => {
+    document.querySelectorAll('.btn-clear').forEach((btn) =>
+      btn.addEventListener('click', () => setField(btn.dataset.for, null)));
+
+    /* ---------- request helpers ---------- */
+
+    function buildFormData(extra) {
+      const fd = new FormData();
+      if (files.following) fd.append('following', files.following);
+      if (files.followers) fd.append('followers', files.followers);
+      Object.entries(extra || {}).forEach(([k, v]) => fd.append(k, v));
+      return fd;
+    }
+
+    async function withLoading(message, task) {
+      loadingText.textContent = message;
+      loading.style.display = 'flex';
+      try {
+        return await task();
+      } finally {
+        loading.style.display = 'none';
+      }
+    }
+
+    /* ---------- analyze ---------- */
+
+    $('uploadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
-      const followingInput = document.getElementById('following');
-      const followersInput = document.getElementById('followers');
-      
-      const hasFollowing = followingInput.files.length > 0;
-      const hasFollowers = followersInput.files.length > 0;
-      
-      if (!hasFollowing && !hasFollowers) {
-        showToast('Please upload at least one file', 'error');
+
+      const hasZip = isZip(files.following) || isZip(files.followers);
+      if (!hasZip && (!files.following || !files.followers)) {
+        toast('Upload both files, or a single ZIP archive.', 'error');
         return;
       }
-      
-      const isZipFollowing = hasFollowing && followingInput.files[0].name.toLowerCase().endsWith('.zip');
-      const isZipFollowers = hasFollowers && followersInput.files[0].name.toLowerCase().endsWith('.zip');
-      
-      if (!isZipFollowing && !isZipFollowers && (!hasFollowing || !hasFollowers)) {
-        showToast('Please upload both files or a ZIP archive', 'error');
-        return;
-      }
-      
-      lastFormData = new FormData(e.target);
-      resultsContainer.innerHTML = '';
-      analyticsContainer.style.display = 'none';
-      
-      loading.style.display = 'flex';
-      
+
+      results.innerHTML = '';
+      analytics.style.display = 'none';
+
       try {
-        console.log('Starting analysis...');
-        const response = await fetch('/analyze/json', {
-          method: 'POST',
-          body: lastFormData
+        await withLoading('Analyzing…', async () => {
+          const res = await fetch('/analyze/json', { method: 'POST', body: buildFormData() });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Analysis failed.');
+          render(data.analysis);
         });
-        
-        console.log('Response:', response.status);
-        const data = await response.json();
-        console.log('Data:', data);
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Analysis failed');
-        }
-        
-        currentAnalysis = data.analysis;
-        displayAnalytics(data.analysis);
-        
       } catch (err) {
-        console.error('Error:', err);
-        resultsContainer.innerHTML = `
-          <div class="alert alert-danger">
-            <i class="fas fa-exclamation-triangle"></i> ${err.message}
-          </div>`;
-      } finally {
-        loading.style.display = 'none';
+        results.innerHTML =
+          '<div class="alert alert-danger" role="alert">' +
+          '<i class="fas fa-exclamation-triangle"></i> ' + escapeHtml(err.message) + '</div>';
       }
     });
 
-    function displayAnalytics(analysis) {
-      const statsGrid = document.getElementById('statsGrid');
-      
-      statsGrid.innerHTML = `
-        <div class="stat-card">
-          <div class="stat-icon"><i class="fas fa-user-plus"></i></div>
-          <div class="stat-content">
-            <div class="stat-number">${analysis.summary.total_following}</div>
-            <div class="stat-label">Following</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon"><i class="fas fa-users"></i></div>
-          <div class="stat-content">
-            <div class="stat-number">${analysis.summary.total_followers}</div>
-            <div class="stat-label">Followers</div>
-          </div>
-        </div>
-        <div class="stat-card unfollowers">
-          <div class="stat-icon"><i class="fas fa-user-times"></i></div>
-          <div class="stat-content">
-            <div class="stat-number">${analysis.summary.unfollowers}</div>
-            <div class="stat-label">Unfollowers</div>
-          </div>
-        </div>
-      `;
-      
-      document.getElementById('count-unfollowers').textContent = analysis.summary.unfollowers;
-      document.getElementById('count-following').textContent = analysis.summary.total_following;
-      
-      populateUserLists(analysis.lists);
-      
-      analyticsContainer.style.display = 'block';
-      analyticsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    function render(analysis) {
+      const s = analysis.summary;
+
+      $('statsGrid').innerHTML = [
+        statCard('following', 'fa-user-plus', s.total_following, 'Following'),
+        statCard('followers', 'fa-users', s.total_followers, 'Followers'),
+        statCard('mutual', 'fa-handshake', s.mutual, 'Mutual'),
+        statCard('unfollowers', 'fa-user-times', s.unfollowers, "Don't follow back"),
+      ].join('');
+
+      $('count-unfollowers').textContent = s.unfollowers;
+      $('count-mutual').textContent = s.mutual;
+      $('count-following').textContent = s.total_following;
+
+      fillList('unfollowers-list', analysis.lists.unfollowers);
+      fillList('mutual-list', analysis.lists.mutual);
+      fillList('following-list', analysis.lists.following);
+      applySearch();
+
+      analytics.style.display = 'block';
+      analytics.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function populateUserLists(lists) {
-      const containers = {
-        'unfollowers': document.getElementById('unfollowers-list'),
-        'following': document.getElementById('following-list')
-      };
-      
-      Object.entries(lists).forEach(([key, users]) => {
-        const container = containers[key];
-        if (container && users.length > 0) {
-          container.innerHTML = users.map(user => `
-            <div class="user-item" data-username="${user.username}">
-              <div class="user-info">
-                <i class="fab fa-instagram"></i>
-                <a href="${user.profile_url}" target="_blank" rel="noopener" class="username">
-                  @${user.username}
-                </a>
-              </div>
-              <button class="copy-btn" onclick="copyUsername('${user.username}')" title="Copy">
-                <i class="fas fa-copy"></i>
-              </button>
-            </div>
-          `).join('');
-        } else if (container) {
-          container.innerHTML = '<div class="no-data"><i class="fas fa-check-circle"></i> No users</div>';
-        }
+    function statCard(modifier, icon, value, label) {
+      return (
+        '<div class="stat-card ' + modifier + '">' +
+        '<div class="stat-icon"><i class="fas ' + icon + '"></i></div>' +
+        '<div class="stat-content">' +
+        '<div class="stat-number">' + value + '</div>' +
+        '<div class="stat-label">' + label + '</div>' +
+        '</div></div>'
+      );
+    }
+
+    function fillList(id, users) {
+      const container = $(id);
+      if (!users.length) {
+        container.innerHTML =
+          '<div class="no-data"><i class="fas fa-check-circle"></i> Nothing to show here.</div>';
+        return;
+      }
+      container.innerHTML = users.map((u) => {
+        const name = escapeHtml(u.username);
+        const badge = u.follows_back
+          ? '<span class="status-badge mutual"><i class="fas fa-handshake"></i> Mutual</span>'
+          : '<span class="status-badge unfollower"><i class="fas fa-user-times"></i> Doesn\'t follow back</span>';
+        return (
+          '<div class="user-item" data-username="' + name + '">' +
+          '<div class="user-info"><i class="fab fa-instagram"></i>' +
+          '<a href="' + escapeHtml(u.profile_url) + '" target="_blank" rel="noopener" class="username">@' + name + '</a>' +
+          '</div>' +
+          '<div class="user-actions">' + badge +
+          '<button type="button" class="copy-btn" data-copy="' + name + '" aria-label="Copy ' + name + '">' +
+          '<i class="fas fa-copy"></i></button>' +
+          '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    /* ---------- tabs, copy, search ---------- */
+
+    document.addEventListener('click', (e) => {
+      const tab = e.target.closest('.list-tab');
+      if (tab) {
+        document.querySelectorAll('.list-tab').forEach((t) => t.classList.toggle('active', t === tab));
+        document.querySelectorAll('.tab-pane').forEach((p) =>
+          p.classList.toggle('active', p.id === tab.dataset.tab + '-list'));
+        applySearch();
+        return;
+      }
+
+      const copyBtn = e.target.closest('.copy-btn');
+      if (copyBtn) { copyUsername(copyBtn.dataset.copy); return; }
+
+      const csvBtn = e.target.closest('.btn-download.csv');
+      if (csvBtn) {
+        const type = csvBtn.dataset.type;
+        download('/analyze/csv', { export_type: type }, 'instagram_' + type + '.csv');
+      }
+    });
+
+    $('pdfBtn').addEventListener('click', () =>
+      download('/analyze/pdf', {}, 'instagram_unfollowers.pdf'));
+
+    function applySearch() {
+      const term = $('userSearch').value.trim().toLowerCase();
+      const pane = document.querySelector('.tab-pane.active');
+      if (!pane) return;
+
+      let visible = 0;
+      pane.querySelectorAll('.user-item').forEach((item) => {
+        const match = item.dataset.username.toLowerCase().includes(term);
+        item.style.display = match ? 'flex' : 'none';
+        if (match) visible += 1;
       });
-    }
 
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('list-tab') || e.target.closest('.list-tab')) {
-        const tab = e.target.classList.contains('list-tab') ? e.target : e.target.closest('.list-tab');
-        
-        document.querySelectorAll('.list-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        
-        tab.classList.add('active');
-        const targetTab = tab.dataset.tab;
-        const targetPane = document.getElementById(targetTab + '-list');
-        if (targetPane) targetPane.classList.add('active');
-      }
-      
-      if (e.target.closest('.btn-download.csv')) {
-        const button = e.target.closest('.btn-download.csv');
-        const exportType = button.dataset.type;
-        downloadCSV(exportType);
-      }
-    });
-
-    document.getElementById('userSearch')?.addEventListener('input', function() {
-      const searchTerm = this.value.toLowerCase();
-      const activePane = document.querySelector('.tab-pane.active');
-      
-      if (activePane) {
-        const items = activePane.querySelectorAll('.user-item');
-        items.forEach(item => {
-          const username = item.dataset.username.toLowerCase();
-          item.style.display = username.includes(searchTerm) ? 'flex' : 'none';
-        });
-      }
-    });
-
-    async function downloadCSV(exportType) {
-      if (!uploadedFiles.following && !uploadedFiles.followers) {
-        showToast('Please analyze first', 'error');
-        return;
-      }
-      
-      try {
-        loading.style.display = 'flex';
-        document.getElementById('loadingText').textContent = 'Exporting CSV...';
-        
-        const formData = new FormData();
-        if (uploadedFiles.following) formData.append('following', uploadedFiles.following);
-        if (uploadedFiles.followers) formData.append('followers', uploadedFiles.followers);
-        formData.append('export_type', exportType);
-        
-        console.log('CSV export:', exportType);
-        const response = await fetch('/analyze/csv', {
-          method: 'POST',
-          body: formData
-        });
-        
-        console.log('CSV response:', response.status);
-        
-        if (!response.ok) {
-          const error = await response.json();
-          console.error('CSV error:', error);
-          throw new Error(error.error || 'CSV failed');
+      let notice = pane.querySelector('.no-match');
+      if (pane.querySelector('.user-item') && visible === 0) {
+        if (!notice) {
+          notice = document.createElement('div');
+          notice.className = 'no-data no-match';
+          pane.appendChild(notice);
         }
-        
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `instagram_${exportType}_${Date.now()}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        
-        showToast('CSV downloaded!');
-        
-      } catch (error) {
-        console.error('CSV error:', error);
-        showToast(`Error: ${error.message}`, 'error');
-      } finally {
-        loading.style.display = 'none';
-        document.getElementById('loadingText').textContent = 'Analyzing...';
+        notice.innerHTML = '<i class="fas fa-search"></i> No usernames match “' + escapeHtml(term) + '”.';
+        notice.style.display = 'block';
+      } else if (notice) {
+        notice.style.display = 'none';
       }
     }
 
-    async function generatePDF() {
-      if (!uploadedFiles.following && !uploadedFiles.followers) {
-        showToast('Please analyze first', 'error');
-        return;
-      }
-      
-      if (currentAnalysis && currentAnalysis.summary.unfollowers === 0) {
-        showToast('Great! Everyone follows you back!', 'success');
-        return;
-      }
-      
-      const btn = document.getElementById('pdfBtn');
-      btn.disabled = true;
-      loading.style.display = 'flex';
-      
+    $('userSearch').addEventListener('input', applySearch);
+
+    async function copyUsername(username) {
       try {
-        const formData = new FormData();
-        if (uploadedFiles.following) formData.append('following', uploadedFiles.following);
-        if (uploadedFiles.followers) formData.append('followers', uploadedFiles.followers);
-        
-        console.log('PDF generation...');
-        const response = await fetch('/analyze/pdf', {
-          method: 'POST',
-          body: formData
-        });
-        
-        console.log('PDF response:', response.status);
-        
-        if (!response.ok) {
-          const error = await response.json();
-          console.error('PDF error:', error);
-          if (error.message) {
-            showToast(error.message, 'success');
+        await navigator.clipboard.writeText(username);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = username;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+      toast('Copied @' + username);
+    }
+
+    /* ---------- downloads ---------- */
+
+    async function download(url, extra, filename) {
+      if (!files.following && !files.followers) {
+        toast('Run an analysis first.', 'error');
+        return;
+      }
+      try {
+        await withLoading('Preparing your download…', async () => {
+          const res = await fetch(url, { method: 'POST', body: buildFormData(extra) });
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Download failed.');
+            toast(data.message || 'Nothing to export.');
             return;
           }
-          throw new Error(error.error || 'PDF failed');
-        }
-        
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `instagram_unfollowers_${Date.now()}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        
-        showToast('PDF downloaded!');
-        
+
+          const blob = await res.blob();
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(link.href);
+          toast('Download ready.');
+        });
       } catch (err) {
-        console.error('PDF error:', err);
-        showToast(`Error: ${err.message}`, 'error');
-      } finally {
-        btn.disabled = false;
-        loading.style.display = 'none';
+        toast(err.message, 'error');
       }
     }
 
-    document.getElementById('pdfBtn')?.addEventListener('click', generatePDF);
+    /* ---------- toast ---------- */
 
-    function copyUsername(username) {
-      navigator.clipboard.writeText(username).then(() => {
-        showToast('Copied!');
-      }).catch(() => {
-        const textArea = document.createElement('textarea');
-        textArea.value = username;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showToast('Copied!');
-      });
-    }
-
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `toast toast-${type}`;
-      toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
-      document.body.appendChild(toast);
-      
-      setTimeout(() => toast.classList.add('show'), 100);
+    function toast(message, type) {
+      type = type || 'success';
+      const el = document.createElement('div');
+      el.className = 'toast toast-' + type;
+      el.setAttribute('role', 'status');
+      el.innerHTML =
+        '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i> ' +
+        escapeHtml(message);
+      document.body.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('show'));
       setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 300);
+      }, 3200);
     }
-
-    document.addEventListener('DOMContentLoaded', initializeDragDrop);
   </script>
 </body>
 </html>

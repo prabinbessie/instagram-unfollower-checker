@@ -1,5 +1,5 @@
 """
-Instagram Unfollower Analyzer v5.0
+Instagram Unfollower Analyzer v6.0
 """
 import os
 import json
@@ -10,6 +10,7 @@ import csv
 import zipfile
 from datetime import datetime
 from io import BytesIO, StringIO
+from urllib.parse import urlparse
 from flask import Flask, request, jsonify, send_file, render_template
 from bs4 import BeautifulSoup
 from reportlab.lib.pagesizes import letter
@@ -116,15 +117,17 @@ class InstagramAnalyzer:
         except Exception:
             f1.stream.seek(0)
         return f1, f2
+    _NON_PROFILE_SEGMENTS = {'_u', 'p', 'reel', 'reels', 'stories', 'explore', 'tv'}
 
     @classmethod
     def parse_html(cls, stream):
         soup = BeautifulSoup(stream.read(), 'html.parser')
-        users = {
-            a['href'].rstrip('/').split('/')[-1]
-            for a in soup.select('a[href*="instagram.com"]')
-            if a.get('href')
-        }
+        users = set()
+        for a in soup.select('a[href*="instagram.com"]'):
+            segments = [s for s in urlparse(a.get('href', '')).path.split('/') if s]
+            username = segments[-1] if segments else ''
+            if username and username not in cls._NON_PROFILE_SEGMENTS:
+                users.add(username)
         return sorted(users)
 
     @classmethod
@@ -166,26 +169,30 @@ class InstagramAnalyzer:
         followers_set = set(followers)
 
         unfollowers = sorted(following_set - followers_set)
+        mutual = sorted(following_set & followers_set)
 
-        total_following = len(following)
-        total_followers = len(followers)
-        unfollowers_count = len(unfollowers)
+        def entry(index, username):
+            return {
+                'id': index + 1,
+                'username': username,
+                'profile_url': f"https://www.instagram.com/{username}",
+                'follows_back': username in followers_set,
+            }
+
+        def build(usernames):
+            return [entry(i, u) for i, u in enumerate(usernames)]
 
         return {
             'summary': {
-                'total_following': total_following,
-                'total_followers': total_followers,
-                'unfollowers': unfollowers_count
+                'total_following': len(following),
+                'total_followers': len(followers),
+                'mutual': len(mutual),
+                'unfollowers': len(unfollowers),
             },
             'lists': {
-                'following': [
-                    {'id': i+1, 'username': u, 'profile_url': f"https://www.instagram.com/{u}"}
-                    for i, u in enumerate(following)
-                ],
-                'unfollowers': [
-                    {'id': i+1, 'username': u, 'profile_url': f"https://www.instagram.com/{u}"}
-                    for i, u in enumerate(unfollowers)
-                ]
+                'following': build(following),
+                'mutual': build(mutual),
+                'unfollowers': build(unfollowers),
             }
         }
 
@@ -276,7 +283,12 @@ def analyze_json():
         f_following, f_followers = InstagramAnalyzer.resolve_inputs(request.files)
         analysis = InstagramAnalyzer.get_analysis(f_following, f_followers)
         app.logger.info(f"Analysis complete. Found {analysis['summary']['unfollowers']} unfollowers")
-        return jsonify({'success': True, 'analysis': analysis})
+        return jsonify({
+            'success': True,
+            'analysis': analysis,
+            'count': analysis['summary']['unfollowers'],
+            'results': analysis['lists']['unfollowers']
+        })
     except Exception as e:
         app.logger.error(f"Analysis error: {e}", exc_info=True)
         return jsonify(error=str(e)), 400

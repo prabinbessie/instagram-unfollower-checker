@@ -24,6 +24,13 @@ body {
   color: #333;
 }
 
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
 .main-wrapper {
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(10px);
@@ -157,7 +164,8 @@ body {
 }
 
 .drop-zone label:hover,
-.drop-zone.drag-over label {
+.drop-zone.drag-over label,
+.drop-zone:focus-within label {
   border-color: var(--ig-pink);
   background: linear-gradient(145deg, #fff, #fef5f8);
   transform: translateY(-2px);
@@ -199,8 +207,16 @@ body {
   word-break: break-word;
 }
 
+.file-name-display.has-file {
+  color: var(--ig-green);
+}
+
+/* Visually hidden, but still keyboard-focusable for accessibility. */
 .drop-zone input[type="file"] {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
 .btn-clear {
@@ -327,27 +343,6 @@ body {
   font-weight: 500;
 }
 
-.progress-container {
-  width: 300px;
-  height: 6px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 10px;
-  margin-top: 1.5rem;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--ig-pink), var(--ig-purple), var(--ig-blue));
-  width: 0;
-  animation: progress 2s ease-in-out infinite;
-}
-
-@keyframes progress {
-  0%, 100% { width: 0; }
-  50% { width: 100%; }
-}
-
 .results-container {
   margin: 2rem 0;
 }
@@ -445,10 +440,10 @@ body {
   box-shadow: 0 8px 25px var(--ig-shadow-lg);
 }
 
-.stat-card.mutual { --accent: var(--ig-blue); }
-.stat-card.non-followers { --accent: var(--ig-pink); }
-.stat-card.not-following { --accent: var(--ig-orange); }
-.stat-card.percentage { --accent: var(--ig-purple); }
+.stat-card.following   { --accent: var(--ig-blue); }
+.stat-card.followers   { --accent: var(--ig-purple); }
+.stat-card.mutual      { --accent: var(--ig-green); }
+.stat-card.unfollowers { --accent: var(--ig-pink); }
 
 .stat-icon {
   font-size: 2.5rem;
@@ -474,25 +469,6 @@ body {
   font-weight: 500;
 }
 
-.charts-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
-}
-
-.chart-container {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 15px;
-  box-shadow: 0 2px 10px var(--ig-shadow);
-  min-height: 300px;
-}
-
-.chart-container canvas {
-  max-height: 250px;
-}
-
 .export-section {
   margin: 3rem 0;
   padding: 2rem;
@@ -507,8 +483,7 @@ body {
   margin-top: 1.5rem;
 }
 
-.btn-download,
-.btn-download-pdf {
+.btn-download {
   padding: 1rem 1.5rem;
   border: none;
   border-radius: 12px;
@@ -522,7 +497,6 @@ body {
   font-size: 0.95rem;
 }
 
-.btn-download-pdf,
 .btn-download.pdf {
   background: linear-gradient(135deg, var(--ig-purple), #9c4dcc);
   color: white;
@@ -533,17 +507,9 @@ body {
   color: white;
 }
 
-.btn-download:hover,
-.btn-download-pdf:hover {
+.btn-download:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px var(--ig-shadow-lg);
-}
-
-.btn-download:disabled,
-.btn-download-pdf:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
 }
 
 .detailed-lists {
@@ -653,11 +619,14 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .user-info i {
   color: var(--ig-pink);
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .username {
@@ -665,9 +634,39 @@ body {
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .username:hover {
+  color: var(--ig-pink);
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+
+.status-badge.mutual {
+  background: rgba(40, 167, 69, 0.12);
+  color: var(--ig-green);
+}
+
+.status-badge.unfollower {
+  background: rgba(225, 48, 108, 0.12);
   color: var(--ig-pink);
 }
 
@@ -679,6 +678,7 @@ body {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .copy-btn:hover {
@@ -907,13 +907,44 @@ body {
     font-size: 1.1rem;
     padding: 1rem 2rem;
   }
+
+  .user-item {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .user-actions {
+    margin-left: auto;
+  }
+
+  .status-badge {
+    font-size: 0.72rem;
+  }
+}
+
+/* Keyboard accessibility: a clear focus ring on every interactive element. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--ig-blue);
+  outline-offset: 2px;
+}
+
+/* Respect users who ask the OS to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media print {
   .loading-overlay,
   .btn-analyze,
   .btn-download,
-  .btn-download-pdf,
   .btn-clear,
   .copy-btn,
   .footer,

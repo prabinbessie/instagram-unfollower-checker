@@ -1,259 +1,50 @@
 # Instagram Unfollower Checker
 
-[![Version](https://img.shields.io/badge/version-5.0-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
+[![Version](https://img.shields.io/badge/version-6.0-blue.svg)](https://github.com/prabinbessie/instagram-unfollower-checker/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-2.0%2B-red.svg)](https://flask.palletsprojects.com/)
-[![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-> **Discover who's not following you back on Instagram with this privacy-focused, easy-to-use web application.**
+Find out who you follow on Instagram that doesn't follow you back. Upload your
+Instagram data export and get the list in seconds — JSON, HTML, or the full ZIP.
 
-Ever wondered who among your 1000+ Following list isn't following you back? Manually checking each profile against your 10,000+ followers would take **hours or even days**. This powerful Flask-based web application does the heavy lifting for you in **seconds**.
+🔗 **[Live demo](https://instagram-unfollower-checker-nm16.onrender.com)** — the
+free host may take ~50s to wake up.
 
-Simply upload your Instagram data files or ZIP archive, and our smart analyzer compares your followers and following lists to instantly identify non-reciprocal connections. Built with privacy in mind - all processing happens locally with zero data collection.
-
-🔗 **[Try Live Demo](https://instagram-unfollower-checker-nm16.onrender.com)**
-> **It will take up to 50 seconds to load application**
-
----
+![Sample results](static/img/sample_results.png)
 
 ## Features
 
-###  **Simplified Interface**
-- **Two Clear Lists**: View only what matters - people you follow and people who don't follow back
-- **Clean Design**: Streamlined UI focused on essential information
-- **Quick Search**: Filter through usernames instantly
+- Upload individual `following`/`followers` files **or** the complete Instagram ZIP
+- JSON and HTML exports both supported, with automatic file detection
+- Searchable lists, plus follow-back rate
+- Export results as CSV or PDF
+- Everything runs in memory — no data is stored
 
-###  **Dual Format Support**
-- **JSON Export**: Full compatibility with Instagram's JSON data format
-- **HTML Export**: Parse Instagram's HTML data exports seamlessly
-- **Smart Detection**: Automatically identifies and processes file formats
+## Quick start
 
-###  **ZIP Archive Support**
-- **Direct ZIP Upload**: Upload Instagram's complete data archive without extraction
-- **Smart Extraction**: Automatically finds and processes files from nested folder structures
-- **Intelligent Detection**: Locates `following.html` and `followers_1.html` from `connections/followers_and_following/` folder
+```bash
+git clone https://github.com/prabinbessie/instagram-unfollower-checker.git
+cd instagram-unfollower-checker
 
-###  **Export Options**
-- **CSV Export**: Download your data in spreadsheet format
-- **PDF Reports**: Generate professional PDF documents with embedded profile links
-- **Multiple Categories**: Export following list or unfollowers list separately
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
 
-###  **Modern Web Interface**
-- **Drag & Drop**: Easy file upload with drag-and-drop support
-- **Responsive Design**: Perfect on desktop, tablet, and mobile devices
-- **Real-time Results**: Instant analysis with live progress indicators
-- **Interactive Links**: Clickable Instagram profile links for easy access
-
-###  **Privacy & Security First**
-- **Zero Data Storage**: No data saved on servers or databases
-- **Local Processing**: All analysis happens in memory during your session
-- **No API Calls**:  no external dependencies
-- **Secure Headers**: Modern security practices implemented
-
----
-
-##  Quick Start
-
-### Prerequisites
-- Python 3.9 or higher
-- pip package manager
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/prabinbessie/instagram-unfollower-checker.git
-   cd instagram-unfollower-checker
-   ```
-
-2. **Set up virtual environment**
-   ```bash
-   # Create virtual environment
-   python -m venv venv
-   
-   # Activate environment
-   # On Linux/macOS:
-   source venv/bin/activate
-   
-   # On Windows:
-   .\venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Launch the application**
-   ```bash
-   flask run --port 5001 --debug
-   ```
-
-5. **Open your browser**
-   ```
-   http://localhost:5001
-   ```
-
----
-
-##  How to Get Your Instagram Data
-
-### Step-by-Step Guide
-
-1. **Access Instagram Settings**
-   - Open Instagram on web or mobile
-   - Go to **Settings** → **Privacy and Security** → **Data Download**
-
-2. **Request Your Data**
-   - Select **"Connections"** or **"Following and Followers"**
-   - Choose format: **JSON** (recommended) or **HTML**
-   - Enter your email address
-   - Click **"Request Download"**
-
-3. **Download Your Files**
-   - Wait for Instagram's email (usually 24-48 hours)
-   - Download the ZIP file from the email link
-   - Extract the archive
-
-4. **Locate Required Files**
-   - Option 1: Upload the ZIP file directly (recommended)
-   - Option 2: Extract and upload individual files:
-        - `followers_1.json` or `followers.html`
-        - `following.json` or `following.html`
-
-![Instagram Data Download Process](static/img/instagram_data_download.jpg)
-
----
-
-##  What You'll Discover
-
-### Analysis Results Include:
-- **Complete list** of accounts you follow that don't follow back
-- **Direct profile links** for easy access to each account
-- **Total count** of non-reciprocal follows
-- **Detailed statistics** about your following patterns
-
-### Export Options:
-- **Web View**: Interactive, mobile-friendly results page
-- **PDF Report**: Professional document with embedded links
-- **CSV Data**: Download lists in spreadsheet format
-
-![Sample Results Screenshot](static/img/sample_results.png)
-
----
-
-##  Technical Architecture
-
-```
-instagram-unfollower-checker/
-├── static/
-│   └── css/
-├── templates/
-├── sample_json/           
-│   ├── followers.json
-│   └── following.json
-├── tests/
-├── .gitignore
-├── CHANGELOG.md
-├── Procfile
-├── README.md
-├── LICENSE
-├── app.py
-├── requirements.txt
-└── version.py
+python app.py                      # http://localhost:5001
 ```
 
-###  Built With
-- **Flask** - Lightweight web framework
-- **ReportLab** - PDF generation
-- **Bootstrap** - Responsive UI components
-- **JavaScript** - Interactive functionality
+Run the tests with `pytest`.
 
+## Getting your Instagram data
 
----
+1. Instagram → **Settings → Accounts Center → Your information and permissions →
+   Download your information**.
+2. Request **"Followers and following"** in **JSON** (recommended) or **HTML**.
+3. When the email arrives, download the ZIP and upload it directly — or extract
+   `following.*` and `followers_1.*` from `connections/followers_and_following/`
+   and upload those two files.
 
-##  Contributing
+## License
 
-I love contributions! Here's how you can help make this project even better:
+MIT — see [LICENSE](LICENSE).
 
-###  Development Workflow
-
-1. **Fork the repository**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/instagram-unfollower-checker.git
-   ```
-
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/your-new-feature
-   ```
-
-3. **Make your changes**
-   - Follow PEP-8 style guidelines
-   - Add type hints where appropriate
-   - Include comprehensive tests
-   - Update documentation
-
-4. **Test your changes**
-   ```bash
-   python -m pytest tests/
-   ```
-
-5. **Commit and push**
-   ```bash
-   git commit -m "feat: add your new feature"
-   git push origin feature/your-new-feature
-   ```
-
-6. **Create a Pull Request**
-   - Provide a detailed description
-   - Reference any related issues
-   - Include screenshots if applicable
-
-###  Development Guidelines
-- **Code Style**: Follow PEP-8 conventions
-- **Testing**: Maintain >90% code coverage
-- **Documentation**: Update README and inline docs
-- **Commits**: Use conventional commit messages
-
----
-
-###  **Found a Bug?**
-1. Check existing [issues](https://github.com/prabinbessie/instagram-unfollower-checker/issues)
-2. Create a new issue with detailed description
-3. Include error messages and steps to reproduce
-
-###  **Feature Requests**
-Always looking to improve! Submit feature requests through GitHub issues.
-
----
-
-##  License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for full details.
-
-
----
-
-##  Author & Contact
-
-**Prabin Bhandari**
-
--  **Email**: [em8een@gmail.com](mailto:em8een@gmail.com)
--  **Instagram**: [@prabinbhandarii](https://instagram.com/prabinbhandarii)
--  **GitHub**: [@prabinbessie](https://github.com/prabinbessie)
-
----
-
-<div align="center">
-
-**Made with ❤️ by [Prabin Bhandari](https://github.com/prabinbessie)**
-
-*Helping you understand your Instagram connections better*
-
-[![GitHub stars](https://img.shields.io/github/stars/prabinbessie/instagram-unfollower-checker.svg?style=social&label=Star)](https://github.com/prabinbessie/instagram-unfollower-checker)
-[![GitHub followers](https://img.shields.io/github/followers/prabinbessie.svg?style=social&label=Follow)](https://github.com/prabinbessie)
-
-</div>
+Made by [Prabin Bhandari](https://github.com/prabinbessie).

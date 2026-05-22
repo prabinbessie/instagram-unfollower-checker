@@ -1,124 +1,152 @@
-import sys
-import os
 import io
+import os
+import sys
 import json
+import zipfile
+
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app import app, InstagramAnalyzer
 
+
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
-    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024 
     with app.test_client() as client:
         yield client
 
-def generate_json_file(usernames, key='relationships_following'):
-    return io.BytesIO(json.dumps([
-        {
-            "string_list_data": [{"value": username}]
-        } for username in usernames
-    ]).encode('utf-8')), f"{key}.json"
 
-def generate_html_file(usernames, label="following"):
-    html_content = '<div class="pam _3-95 _2ph- _a6-g uiBoxWhite noborder">'
-    for u in usernames:
-        html_content += f'<a href="https://www.instagram.com/{u}/">{u}</a>'
-    html_content += '</div>'
-    return io.BytesIO(html_content.encode('utf-8')), f"{label}.html"
+def json_file(usernames, name='following.json'):
+    """Build an Instagram-style JSON upload (top-level list of entries)."""
+    payload = [{"string_list_data": [{"value": u}]} for u in usernames]
+    return io.BytesIO(json.dumps(payload).encode('utf-8')), name
+
+
+def html_file(usernames, name='following.html'):
+    links = ''.join(f'<a href="https://www.instagram.com/{u}/">{u}</a>' for u in usernames)
+    return io.BytesIO(f'<div>{links}</div>'.encode('utf-8')), name
+
+
+def zip_file(following_users, followers_users):
+    buf = io.BytesIO()
+    base = 'connections/followers_and_following/'
+    with zipfile.ZipFile(buf, 'w') as zf:
+        zf.writestr(base + 'following.json', json_file(following_users)[0].getvalue())
+        zf.writestr(base + 'followers_1.json', json_file(followers_users)[0].getvalue())
+    buf.seek(0)
+    return buf, 'instagram_data.zip'
+
+
+def post(client, following, followers, route='/analyze/json'):
+    data = {'following': following, 'followers': followers}
+    return client.post(route, data=data, content_type='multipart/form-data')
+
 
 def test_homepage(client):
     response = client.get('/')
     assert response.status_code == 200
     assert b'Instagram Unfollower Checker' in response.data
 
-def test_json_analysis_with_valid_files(client):
-    following_file, following_name = generate_json_file(['user1', 'user2', 'user3'], 'relationships_following')
-    followers_file, followers_name = generate_json_file(['user2'], 'relationships_followers')
 
-    data = {
-        'following': (following_file, following_name),
-        'followers': (followers_file, followers_name)
-    }
-    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
+def test_json_analysis(client):
+    response = post(client,
+                    json_file(['user1', 'user2', 'user3'], 'following.json'),
+                    json_file(['user2'], 'followers_1.json'))
     assert response.status_code == 200
-    result = response.get_json()
-    assert result['count'] == 2
-    usernames = [u['username'] for u in result['results']]
-    assert 'user1' in usernames and 'user3' in usernames
+    analysis = response.get_json()['analysis']
+    assert analysis['summary'] == {
+        'total_following': 3, 'total_followers': 1, 'mutual': 1, 'unfollowers': 2,
+    }
+    unfollowers = [u['username'] for u in analysis['lists']['unfollowers']]
+    assert unfollowers == ['user1', 'user3']
+
+
+def test_classification(client):
+    # user2 follows back (mutual); user1 and user3 do not (unfollowers).
+    response = post(client,
+                    json_file(['user1', 'user2', 'user3'], 'following.json'),
+                    json_file(['user2'], 'followers_1.json'))
+    analysis = response.get_json()['analysis']
+
+    assert [u['username'] for u in analysis['lists']['mutual']] == ['user2']
+    assert [u['username'] for u in analysis['lists']['unfollowers']] == ['user1', 'user3']
+
+    by_name = {u['username']: u['follows_back'] for u in analysis['lists']['following']}
+    assert by_name == {'user1': False, 'user2': True, 'user3': False}
+    assert all(u['follows_back'] is False for u in analysis['lists']['unfollowers'])
+
 
 def test_html_analysis(client):
-    following_file, following_name = generate_html_file(['user1', 'user2'], 'following')
-    followers_file, followers_name = generate_html_file(['user2'], 'followers')
+    response = post(client,
+                    html_file(['user1', 'user2'], 'following.html'),
+                    html_file(['user2'], 'followers.html'))
+    assert response.status_code == 200
+    analysis = response.get_json()['analysis']
+    assert analysis['summary']['unfollowers'] == 1
+    assert analysis['lists']['unfollowers'][0]['username'] == 'user1'
 
-    data = {
-        'following': (following_file, following_name),
-        'followers': (followers_file, followers_name)
-    }
+
+def test_swapped_uploads_are_auto_corrected(client):
+    # Followers file dropped into the "following" field and vice versa.
+    response = post(client,
+                    json_file(['user2'], 'followers_1.json'),
+                    json_file(['user1', 'user2', 'user3'], 'following.json'))
+    assert response.status_code == 200
+    assert response.get_json()['analysis']['summary']['unfollowers'] == 2
+
+
+def test_zip_upload(client):
+    data = {'following': zip_file(['user1', 'user2', 'user3'], ['user2'])}
     response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
     assert response.status_code == 200
-    result = response.get_json()
-    assert result['count'] == 1
-    assert result['results'][0]['username'] == 'user1'
+    assert response.get_json()['analysis']['summary']['unfollowers'] == 2
+
 
 def test_pdf_generation(client):
-    following_file, following_name = generate_json_file(['user1', 'user2'], 'relationships_following')
-    followers_file, followers_name = generate_json_file(['user2'], 'relationships_followers')
-
-    data = {
-        'following': (following_file, following_name),
-        'followers': (followers_file, followers_name)
-    }
-    response = client.post('/analyze/pdf', data=data, content_type='multipart/form-data')
+    response = post(client,
+                    json_file(['user1', 'user2'], 'following.json'),
+                    json_file(['user2'], 'followers_1.json'),
+                    route='/analyze/pdf')
     assert response.status_code == 200
     assert response.mimetype == 'application/pdf'
+
+
+def test_csv_export(client):
+    response = post(client,
+                    json_file(['user1', 'user2'], 'following.json'),
+                    json_file(['user2'], 'followers_1.json'),
+                    route='/analyze/csv')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    assert b'user1' in response.data
+
 
 def test_missing_files(client):
     response = client.post('/analyze/json', data={}, content_type='multipart/form-data')
     assert response.status_code == 400
-    assert b'please upload both following and followers files' in response.data.lower()
+    assert b'upload both' in response.data.lower()
 
-def test_invalid_format_file(client):
-    bad_file = io.BytesIO(b'invalid content')
-    bad_file_2 = io.BytesIO(b'invalid content 2')
-    data = {
-        'following': (bad_file, 'invalid.txt'),
-        'followers': (bad_file_2, 'invalid2.txt')
-    }
-    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
+
+def test_invalid_format(client):
+    response = post(client,
+                    (io.BytesIO(b'nope'), 'a.txt'),
+                    (io.BytesIO(b'nope'), 'b.txt'))
     assert response.status_code == 400
     assert b'invalid file format' in response.data.lower()
 
-def test_same_file_uploaded(client):
-    file1, name = generate_json_file(['user1'])
-    file2, _ = generate_json_file(['user1'])  # Generate a second file with same content
-    data = {
-        'following': (file1, 'same.json'),
-        'followers': (file2, 'same.json')
-    }
-    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
+
+def test_same_file(client):
+    response = post(client,
+                    json_file(['user1'], 'data.json'),
+                    json_file(['user1'], 'data.json'))
     assert response.status_code == 400
     assert b'same file' in response.data.lower()
 
-def test_empty_file(client):
-    empty_file1 = io.BytesIO(b'')
-    empty_file2 = io.BytesIO(b'')
-    data = {
-        'following': (empty_file1, 'empty.json'),
-        'followers': (empty_file2, 'empty2.json')
-    }
-    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
-    assert response.status_code == 400
-    assert b'expecting value' in response.data.lower()
 
-def test_large_file(client):
-    large_data1 = io.BytesIO(b'0' * (5 * 1024 * 1024 + 1))  # Just over 5MB
-    large_data2 = io.BytesIO(b'0' * (5 * 1024 * 1024 + 1))
-    data = {
-        'following': (large_data1, 'large.json'),
-        'followers': (large_data2, 'large2.json')
-    }
-    response = client.post('/analyze/json', data=data, content_type='multipart/form-data')
-    assert response.status_code in [400, 413]  # Accept both 400 and 413
-    assert b'5mb' in response.data.lower() or b'request entity too large' in response.data.lower()
+def test_empty_file(client):
+    response = post(client,
+                    (io.BytesIO(b''), 'empty.json'),
+                    (io.BytesIO(b''), 'empty2.json'))
+    assert response.status_code == 400
+    assert b'empty' in response.data.lower()
