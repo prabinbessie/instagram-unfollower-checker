@@ -46,5 +46,3 @@ Run the tests with `pytest`.
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
-Made by [Prabin Bhandari](https://github.com/prabinbessie).
